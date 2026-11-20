@@ -1,30 +1,27 @@
-# AI Agent Learning — 112-Day Study Workspace
+# AI Agent Learning — 112 天学习工作台与 Anthropic 认证备考
 
-这是从 `yybb123123/gdscript-lesson/ai-agent-study/` 单独迁移出来的公开学习网页。
+## 在线使用
 
-## 计划的新仓库与网页
+- [AI Agent 16 周 / 112 天主课程](https://yybb123123.github.io/ai-agent-learning/)
+- [Anthropic CCAR-F 21 天认证备考](https://yybb123123.github.io/ai-agent-learning/exam-prep.html)
+- [官方 Claude Certified Architect – Foundations 认证页](https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification)
+- [官方考试指南 v1.1 PDF](https://cc.sj-cdn.net/instructor/6nizmqk8tpzpfjvt6qmmav7rh/public/1794946250/Claude_Certified_Architect_-_Foundations_Exam_Guide.pdf)
+- [官方备考课程目录](https://anthropic-partners.skilljar.com/page/claude-certification-exam-prep-courses)
 
-- 仓库：`https://github.com/yybb123123/ai-agent-learning`
-- GitHub Pages：`https://yybb123123.github.io/ai-agent-learning/`
+## 学习内容
 
-**上面两个地址只有在创建新公开仓库、上传本目录文件、启用 Pages 后才生效。**
+**主课程 `index.html`：** 16 周 / 112 天任务，8 大模块，配套资源、费曼学习法、每日反馈、笔记、周复盘、进度和 JSON 导入导出。已将官方认证资料链接补入相关学习日，第 15 周集中复习。
 
-## 快速部署
+**认证备考 `exam-prep.html`：** 额外 21 天的独立学习支线，按 CCAR-F 官方五领域组织，提供逐日官方材料、实战练习、费曼问题、笔记、进度、复盘和独立 JSON 备份。该学习计划是原创教学辅助内容，不是 Anthropic 官方模拟考试。
 
-1. 在 GitHub 新建仓库，名称 `ai-agent-learning`，选择 **Public**。
-2. 将 `index.html`、`README.md`、`.nojekyll` 放在仓库根目录 `main` 分支（不要放入子文件夹）。
-3. GitHub 仓库进入 **Settings → Pages → Build and deployment → Deploy from a branch → main / (root) → Save**。
-4. 等 Pages 部署完成，打开 `https://yybb123123.github.io/ai-agent-learning/`。
-5. 新站验证正常后，再删除旧仓库 `gdscript-lesson/ai-agent-study/` 中的文件。迁移前建议在旧站点击「备份记录」，新站点击「导入记录」。
+## 隐私、备份与 API 限制
 
-## 当前功能和注意事项
+- 网站代码和课程公开，**学习记录只存储在当前浏览器本地**，不自动同步手机和电脑，也不会上传到 GitHub。主课程和认证备考使用不同的本地存储与 JSON 备份文件，切换设备时需要分别导出和导入。
+- 不要将学生、家长、员工真实敏感资料或 API Key 输入公开学习页面。
+- GitHub Pages 是静态托管，不能安全保管 DeepSeek API Key；**在线版 AI 助教暂未启用**。如需启用，必须使用单独的、具备身份认证和密钥保护的服务。
+- 正式 Anthropic 认证考试报名可能需要合作伙伴企业邮箱。考试费、资格、考纲与备考权限以官方最新信息为准。
+- 本仓库的学习页不提供 EEC 法规合规判断，也不代表已取得 Anthropic 认证。
 
-- 包含 16 周 / 112 天课程、资源链接、每日学习内容、费曼学习法、周复盘、进度、学习笔记及 JSON 备份导入。
-- **公开只代表网页代码和课程计划可见**。学习记录保存在设备浏览器的 `localStorage`；不会自动上传 GitHub，也不会跨设备自动同步。请定期导出备份。不要在网页录入真实学生/员工的敏感数据。
-- GitHub Pages 不具备 Python 后端、用户身份认证或秘密密钥存储，因此**DeepSeek 助教在这个公开静态网页中暂不可用**。不要将 API Key 写入 HTML、JavaScript、Git 提交、公开环境变量或静态配置文件。
-- 如需手机与电脑自动同步学习笔记，需单独部署具备登录权限控制的私有云数据库/服务。公开网页可以保持免费、无登录，但私人笔记的同步服务必须鉴权。
-- 如希望手机使用 DeepSeek，须配置带认证、速率限制、预算上限和安全密钥存储的 API 代理。该功能未在此包中实现。
+## 仓库
 
-## 原始项目
-
-本迁移包不包含原来的 `gdscript-lesson` 项目内容，便于完全独立管理。
+[GitHub 源代码](https://github.com/yybb123123/ai-agent-learning)
