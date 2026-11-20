@@ -8,6 +8,17 @@
 - [官方考试指南 v1.1 PDF](https://cc.sj-cdn.net/instructor/6nizmqk8tpzpfjvt6qmmav7rh/public/1794946250/Claude_Certified_Architect_-_Foundations_Exam_Guide.pdf)
 - [官方备考课程目录](https://anthropic-partners.skilljar.com/page/claude-certification-exam-prep-courses)
 
+## DeepSeek 在线学习助教（GitHub Pages 手机端）
+
+主学习网页已支持使用 [Cloudflare Worker 安全中转服务](./cloudflare/deepseek-worker.js) 调用 DeepSeek，不再被 GitHub Pages 静态页面限制。
+
+**[一步一步配置说明（含手机设置、Secret 和排障）](./cloudflare/SETUP.md)**。
+
+需要在 Cloudflare 创建自己的 Worker，并在 Cloudflare 中设置两个独立的 Secret：
+`DEEPSEEK_API_KEY` 与 `STUDY_ACCESS_TOKEN`。不要将两者发送到 GitHub 或当前聊天。
+
+网页仅保存 Worker 公网根网址；个人访问口令不进入本地 JSON 笔记备份。默认模型 `deepseek-flash`，调用按 DeepSeek 当前定价收费；Worker Free 的免费额度不意味着 DeepSeek 免费。
+
 ## NotebookLM / Gemini Notebook 讨论跳转
 
 - 112 天主课程新增 **「NotebookLM 讨论」** 导航和每日讨论区，可以为每周绑定一份私人 NotebookLM 笔记本，也可以为某一天设置专属笔记本。可一键跳转到该笔记本，使用 Google 完整的对话、Studio、思维导图、信息图、测验、音频概览等功能。
