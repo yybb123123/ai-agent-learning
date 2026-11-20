@@ -40,7 +40,15 @@
   <aside class="ai">
     <div class="right-head"><h2>DeepSeek 学习助教</h2><span class="helper-tag">主动提问才调用</span></div>
     <div class="ai-status" id="aiStatus"><span class="dot"></span><span>检测本地助教服务…</span></div>
-    <div class="notice securitynote">API Key 仅由本地 Python 服务读取，不输入网页。只有点击「发送给助教」才会向 DeepSeek 发送所选学习内容；笔记默认不发送。</div>
+    <div class="notice securitynote">在线助教通过你自己的 Cloudflare Worker 安全连接 DeepSeek。<strong>不要在此输入 DeepSeek API Key</strong>；它只能保存在 Cloudflare Secret。这里只有一个独立的个人访问口令，且不会保存到笔记备份或 GitHub。只有你主动提问才会发送当日课程内容；笔记默认不发送。</div>
+    <div class="mutedbox" style="margin:10px 0">
+      <strong style="font-size:13px">首次连接 DeepSeek 助教</strong>
+      <label class="field"><span>Cloudflare Worker 服务地址</span><input type="text" id="workerUrl" placeholder="https://asos-study.你的账号.workers.dev" autocomplete="off"></label>
+      <label class="field"><span>个人访问口令（非 DeepSeek API Key）</span><input type="password" id="studyToken" placeholder="Cloudflare STUDY_ACCESS_TOKEN" autocomplete="off"></label>
+      <button type="button" id="saveWorkerConfig" style="margin-top:8px">保存服务地址 / 验证连接</button>
+      <p class="tiny" style="margin-top:7px">服务地址保存在本浏览器；访问口令只保留在当前打开的网页内存中，刷新后需重新输入。请使用独立的随机长口令。</p>
+      <p class="tiny"><a href="https://github.com/yybb123123/ai-agent-learning/blob/main/cloudflare/SETUP.md" target="_blank" rel="noopener noreferrer">查看 Cloudflare 设置步骤 ↗</a></p>
+    </div>
     <label class="field"><span>模型</span><select id="model"><option value="deepseek-flash">deepseek-flash（经济）</option><option value="deepseek-v4-pro">deepseek-v4-pro（深入）</option></select></label>
     <div class="fieldlabel" style="margin-top:12px">辅导模式</div>
     <div class="modes" id="aiModes">
@@ -56,7 +64,7 @@
     <button id="askAi" class="primary" style="width:100%">发送给助教</button>
     <p class="ai-foot" style="margin:6px 0 11px">费曼点评模式会发送你填写的五步练习；其他模式仅在勾选后附上笔记。助教不能自动读取外链网页或访问你的 n8n/数据库。</p>
     <div class="row-between" style="margin-bottom:6px"><strong style="font-size:13px">本次辅导回复</strong><button class="small" id="toSummary">追加到今日总结</button></div>
-    <div id="aiAnswer" class="ai-output">先完成左侧课程，配置本地服务后，即可请 DeepSeek 解释、提问或点评。</div>
+    <div id="aiAnswer" class="ai-output">配置自己的 Cloudflare Worker 后，就可以在手机和电脑上请 DeepSeek 解释、提问或点评。</div>
     <div class="row-between" style="margin:10px 0 3px"><strong style="font-size:12px">本日 AI 辅导历史</strong><button id="clearAi" class="small">清空历史</button></div>
     <div id="aiHistory" class="chat-history"></div>
     <p class="ai-foot" id="tokenUsage"></p>
@@ -257,13 +265,82 @@ $('#aiModes').addEventListener('click',e=>{const b=e.target.closest('[data-mode]
 $('#model').value=state.settings?.model||'deepseek-flash';
 $('#model').addEventListener('change',e=>{state.settings.model=e.target.value;persist()});
 function renderAiHistory(){const history=rec().chat||[];const host=$('#aiHistory');host.replaceChildren();if(!history.length){const m=document.createElement('span');m.className='tiny';m.textContent='目前没有辅导记录';host.appendChild(m)}else{history.slice(-5).reverse().forEach(x=>{const e=document.createElement('div');e.className='chat-mini';e.textContent=`${new Date(x.when).toLocaleString('zh-CN')} · ${MODE_LABELS[x.mode]||x.mode}\n提问：${x.ask||'使用默认任务'}\n回复：${(x.answer||'').slice(0,270)}${(x.answer||'').length>270?'…':''}`;host.appendChild(e)})}}
-async function detectAi(){if(location.hostname.endsWith('.github.io')){$('#aiStatus').textContent='公开网页模式：学习与笔记正常使用；DeepSeek 助教等待安全后端。';return}if(location.protocol==='file:'){$('#aiStatus').innerHTML='<span class="dot"><\/span><span>独立网页模式：请运行 server.py 启用 AI<\/span>';return}try{const r=await fetch('/api/status',{cache:'no-store'});const data=await r.json();aiOnline=!!data.ready;$('#aiStatus').innerHTML=`<span class="dot ${aiOnline?'online':''}"><\/span><span>${aiOnline?'AI 服务已连接（已配置密钥）':'本地服务已连接，尚未配置 API Key'}<\/span>`}catch(e){$('#aiStatus').innerHTML='<span class="dot"><\/span><span>本地 AI 服务不可用<\/span>'}}
+function getWorkerEndpoint(){
+ const raw=String(state.settings?.workerUrl||"").trim();
+ if(!raw)return "";
+ try{
+   const u=new URL(raw);
+   if(u.protocol!=="https:" || u.username || u.password || !u.hostname.endsWith(".workers.dev") || (u.pathname!=="/"&&u.pathname!=="") || u.search || u.hash)return "";
+   return u.origin;
+ }catch(_){return ""}
+}
+function getStudyToken(){return String($('#studyToken')?.value||"").trim()}
+function apiBase(){
+ const worker=getWorkerEndpoint();
+ if(worker)return worker;
+ if(location.protocol!=='file:'&&!location.hostname.endsWith('.github.io'))return location.origin;
+ return "";
+}
+async function detectAi(){
+ const url=apiBase(),token=getStudyToken();
+ if(!url){aiOnline=false;$('#aiStatus').textContent='尚未连接：先设置 Cloudflare Worker 地址及个人访问口令。';return}
+ if(!token){aiOnline=false;$('#aiStatus').textContent='请输入个人访问口令，点击「验证连接」。';return}
+ try{
+   const resp=await fetch(url+'/api/status',{cache:'no-store',headers:{'X-Study-Token':token}});
+   const data=await resp.json();
+   aiOnline=resp.ok&&!!data.ready;
+   $('#aiStatus').textContent=aiOnline?'● DeepSeek 安全中转已连接':'未连接：'+(data.error||'检查服务地址和访问口令');
+ }catch(_){aiOnline=false;$('#aiStatus').textContent='连接失败：检查 Worker 是否部署、密钥及网络。'}
+}
+$('#workerUrl').value=state.settings?.workerUrl||'';
+$('#saveWorkerConfig').addEventListener('click',async()=>{
+  const raw=$('#workerUrl').value.trim();
+  if(raw){
+    try{
+      const u=new URL(raw);
+      if(u.protocol!=='https:'||!u.hostname.endsWith('.workers.dev')||(u.pathname!=="/"&&u.pathname!=="")||u.search||u.hash||u.username||u.password)throw new Error('地址格式不正确');
+      state.settings=state.settings||{};state.settings.workerUrl=u.origin;persist();$('#workerUrl').value=u.origin;
+    }catch(_){alert('请输入你的 Cloudflare Worker 根网址，格式：https://名称.账号.workers.dev（不要包含 /api/chat）');return}
+  }else{
+    state.settings=state.settings||{};delete state.settings.workerUrl;persist();
+  }
+  if(!getStudyToken()){alert('请输入 STUDY_ACCESS_TOKEN 个人访问口令（不是 DeepSeek API Key）。');return}
+  await detectAi();
+});
+
 function requestPayload(weekly=false){const m=getDayMeta(),r=rec();const notesEnabled=$('#includeNotes').checked;const week=state.weekly[String(m.w)]||{};const body={model:$('#model').value,mode:aiMode,context:{week:m.w,day:m.d,title:m.day.title,learn:m.day.learn,practice:m.day.practice,feynmanQuestion:m.day.feynman,weeklyGoal:m.week.objective,weeklyRisk:m.week.risk,materialLinks:m.day.refs.map(k=>CURRICULUM.resources[k].url)},question:$('#aiQuestion').value.trim().slice(0,3000)};
 if(aiMode==='feynman'){body.feynman={...r.feyn};body.question=body.question||'请逐项批改我的费曼复述，指出不准确之处并给一份可验证练习。'}
-if(notesEnabled||sendWeekly){body.notes={notes:r.notes,summary:r.summary,blockers:r.blockers,feedback:r.feedback};if(weekly||aiMode==='summary'){body.weeklyReview=week;body.recentDays=m.week.days.map((d,i)=>{const x=rec(getDayId(m.w,i+1));return {title:d.title,summary:(x.summary||'').slice(0,400),blockers:(x.blockers||'').slice(0,300)}})}}
+if(notesEnabled||weekly){body.notes={notes:r.notes,summary:r.summary,blockers:r.blockers,feedback:r.feedback};if(weekly||aiMode==='summary'){body.weeklyReview=week;body.recentDays=m.week.days.map((d,i)=>{const x=rec(getDayId(m.w,i+1));return {title:d.title,summary:(x.summary||'').slice(0,400),blockers:(x.blockers||'').slice(0,300)}})}}
 if((r.chat||[]).length){body.recentChat=(r.chat||[]).slice(-2).map(x=>({ask:(x.ask||'').slice(0,500),answer:(x.answer||'').slice(0,900)}))}
 return body}
-async function requestAi(weekly=false,sendWeekly=false){if(aiBusy)return;if(location.hostname.endsWith('.github.io')){alert('GitHub Pages 仅能提供公开静态网页。DeepSeek API Key 不能直接放入前端代码；需部署独立安全后端后才能启用手机 AI 助教。');return}if(location.protocol==='file:'){alert('请先运行 python3 server.py，再访问 http://127.0.0.1:8765。单独打开 HTML 时可以学习和记笔记，但不能调用 AI。');return}const body=requestPayload(weekly,sendWeekly);if(aiMode==='feynman'&&!Object.values(body.feynman||{}).some(v=>String(v||'').trim())){alert('请先完成费曼五步中的至少一项复述。');return}aiBusy=true;$('#askAi').disabled=true;$('#askAi').textContent='正在请教…';const display=$('#aiAnswer');display.textContent='正在等待 DeepSeek 回复…';try{const resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','X-Study-Request':'1'},body:JSON.stringify(body)});let result=await resp.json().catch(()=>({error:'接口返回不是 JSON'}));if(!resp.ok)throw new Error(result.error||`HTTP ${resp.status}`);aiText=result.answer||'';display.textContent=aiText||'接口没有返回可见文本';lastUsage=result.usage||null;const saved=rec();patch({chat:[...(saved.chat||[]),{when:new Date().toISOString(),mode:aiMode,ask:body.question,answer:aiText,usage:lastUsage}].slice(-25)});renderAiHistory();$('#tokenUsage').textContent=lastUsage?`本次 Token 用量：输入 ${lastUsage.prompt_tokens??'—'} / 输出 ${lastUsage.completion_tokens??'—'}。费用以 DeepSeek 控制台为准。`:''}catch(err){display.textContent=`请求失败：${err.message}\n\n请检查本地服务、API 余额、网络或模型名称。失败不会清空任何学习笔记。`}finally{aiBusy=false;$('#askAi').disabled=false;$('#askAi').textContent='发送给助教';detectAi()}}
+async function requestAi(weekly=false,sendWeekly=false){
+ if(aiBusy)return;
+ const endpoint=apiBase(),token=getStudyToken();
+ if(!endpoint||!token){
+  alert('请先在右侧填写 Cloudflare Worker 地址与个人访问口令，再点击「验证连接」。');return
+ }
+ const body=requestPayload(weekly||sendWeekly);
+ if(aiMode==='feynman'&&!Object.values(body.feynman||{}).some(v=>String(v||'').trim())){
+  alert('请先完成费曼五步中的至少一项复述。');return
+ }
+ aiBusy=true;$('#askAi').disabled=true;$('#askAi').textContent='正在请教…';
+ const display=$('#aiAnswer');display.textContent='正在等待 DeepSeek 回复…';
+ try{
+  const resp=await fetch(endpoint+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json','X-Study-Token':token},body:JSON.stringify(body)});
+  const result=await resp.json().catch(()=>({error:'服务返回不是 JSON'}));
+  if(!resp.ok)throw new Error(result.error||'HTTP '+resp.status);
+  aiText=result.answer||'';
+  display.textContent=aiText||'接口没有返回可见文本';
+  lastUsage=result.usage||null;
+  const saved=rec();
+  patch({chat:[...(saved.chat||[]),{when:new Date().toISOString(),mode:aiMode,ask:body.question,answer:aiText,usage:lastUsage}].slice(-25)});
+  renderAiHistory();
+  $('#tokenUsage').textContent=lastUsage?'本次 Token 用量：输入 '+(lastUsage.prompt_tokens??'—')+' / 输出 '+(lastUsage.completion_tokens??'—')+'。费用以 DeepSeek 控制台为准。':'';
+ }catch(err){
+  display.textContent='请求失败：'+err.message+'\n\n请检查 Worker 部署、个人口令、API 余额、网络或模型名称。失败不会清空学习笔记。';
+ }finally{aiBusy=false;$('#askAi').disabled=false;$('#askAi').textContent='发送给助教';}
+}
+
 $('#askAi').addEventListener('click',()=>requestAi(tab==='week'));
 $('#toSummary').addEventListener('click',()=>{if(!aiText.trim()){alert('没有可插入的 AI 回复');return}const r=rec();patch({summary:[r.summary||'',`【AI 辅导反馈 · ${new Date().toLocaleString('zh-CN')}】\n${aiText}`].filter(Boolean).join('\n\n')});if(tab==='day')renderDay();renderSummary();renderNav();alert('已追加到今日总结，请检查并纠正其中可能的 AI 错误。')});
 $('#clearAi').addEventListener('click',()=>{if(!confirm('仅清空今天的 AI 对话历史？费曼笔记和学习总结不会删除。'))return;patch({chat:[]});aiText='';$('#aiAnswer').textContent='已清空本日历史。';renderAiHistory()});
