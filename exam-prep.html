@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anthropic 认证备考｜21天</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#182633;font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+a{color:#155b85}button,textarea,input,select{font:inherit}button{background:white;border:1px solid #c4ced8;border-radius:6px;padding:8px 11px;color:#172d40;cursor:pointer}
+button.active,button.primary{background:#1c5f88;color:white;border-color:#1c5f88}
+header{background:white;border-bottom:1px solid #d9e0e6;padding:15px max(15px,calc((100vw - 1040px)/2))}
+header h1{font-size:22px;margin:0 0 5px}header p{margin:0;color:#596878}
+.layout{max-width:1040px;margin:auto;display:grid;grid-template-columns:235px minmax(0,1fr);gap:12px;padding:12px}
+aside,main{background:white;border:1px solid #dae1e7;border-radius:7px;padding:16px}
+aside{align-self:start;position:sticky;top:12px;max-height:90vh;overflow:auto}
+.day{width:100%;text-align:left;display:block;font-size:12px;margin:5px 0}
+.tag{font-size:12px;color:#496d83}h2{font-size:20px}h3{font-size:16px;margin-bottom:8px}p{margin:8px 0}section{padding:16px 0;border-top:1px solid #e4e9ee}
+.notice{padding:12px;background:#fff9eb;border:1px solid #e9d5aa;border-radius:6px;font-size:13px}
+.tip{padding:12px;background:#f1f6fa;border-left:3px solid #86a9c3;border-radius:3px}
+.resource{padding:7px 0;border-bottom:1px solid #edf0f3}
+label{display:block;font-weight:600;font-size:13px;margin:14px 0 6px}
+textarea{display:block;width:100%;min-height:85px;border:1px solid #bdc8d3;border-radius:5px;padding:10px;resize:vertical}
+textarea.tall{min-height:120px}
+input[type=number],select{padding:7px;border:1px solid #bdc8d3;border-radius:5px;max-width:140px}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.stats{background:#f2f6f9;padding:10px;border-radius:6px;margin:12px 0}
+.bar{height:8px;border-radius:5px;background:#dce6ed;overflow:hidden}.fill{height:100%;background:#246f99}
+.small{font-size:12px;color:#637489}.back{display:inline-block;margin:0 0 10px}
+@media(max-width:720px){.layout{display:block;padding:6px}aside{position:static;max-height:220px;margin-bottom:8px}main,aside{padding:13px}header{padding:12px}header h1{font-size:19px}}
+</style>
+</head>
+<body>
+<header><a class="back" href="./">← 返回 AI Agent 112 天主课程</a><h1>Anthropic CCAR-F 认证备考</h1><p>21 天额外训练 · 官方指南与课程链接 · 每日费曼解释 · 实战案例与笔记</p></header>
+<div class="layout"><aside><div id="summary"></div><div id="nav"></div></aside>
+<main><div class="notice">这是独立编排的学习辅助课程，不是 Anthropic 官方授权的模拟考试。<b>学习笔记只存当前浏览器</b>；公开 GitHub Pages 不会上传你的笔记。正式考试可能要求合作伙伴身份与企业邮箱。备考课可能需要登录。</div>
+<section><h2>考试官方资料</h2>
+<p><b>Claude Certified Architect – Foundations (CCAR-F)</b>：60 题，120 分钟，满分 1000 的量表中通过分数为 720。场景式选择题（含多选）；费用与资格以官方页面为准。</p>
+<div id="official"></div>
+<h3>五个官方考试领域</h3><div id="domains"></div></section>
+<section><div id="dayContent"></div></section>
+<section><h3>记录备份</h3><p class="small">此 21 天支线使用独立的浏览器存储。与主课程的 JSON 备份分开；更换手机或浏览器前请单独备份。</p>
+<div class="row"><button id="export">导出备考笔记 JSON</button><button id="import">导入备考笔记 JSON</button><input type="file" id="file" accept=".json,application/json" style="display:none"></div></section></main></div>
+<script>
+'use strict';
+const SOURCES={"guide":["官方 CCAR-F 考试指南 v1.1（PDF）","https://cc.sj-cdn.net/instructor/6nizmqk8tpzpfjvt6qmmav7rh/public/1794946250/Claude_Certified_Architect_-_Foundations_Exam_Guide.pdf"],"exam":["官方 Architect Foundations 考试页","https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification"],"prep":["官方认证备考课程目录（部分需合作伙伴权限）","https://anthropic-partners.skilljar.com/page/claude-certification-exam-prep-courses"],"faq":["官方认证 FAQ 与资格要求","https://anthropic-partners.skilljar.com/page/faq-certifications"],"agents":["Building Effective Agents","https://www.anthropic.com/research/building-effective-agents"],"api":["Building with Claude API 公开课程","https://anthropic.skilljar.com/claude-with-the-anthropic-api"],"platform":["Claude Platform 101 公开课程","https://anthropic.skilljar.com/claude-platform-101"],"mcp":["Introduction to MCP 公开课程","https://anthropic.skilljar.com/introduction-to-model-context-protocol"],"skills":["Introduction to Agent Skills 公开课程","https://anthropic.skilljar.com/introduction-to-agent-skills"],"sub":["Introduction to Subagents 公开课程","https://anthropic.skilljar.com/introduction-to-subagents"],"code":["Claude Code 101 公开课程","https://anthropic.skilljar.com/claude-code-101"],"codeact":["Claude Code in Action 公开课程","https://anthropic.skilljar.com/claude-code-in-action"],"retrieval":["Contextual Retrieval","https://www.anthropic.com/news/contextual-retrieval"],"eval":["Anthropic 工程文章","https://www.anthropic.com/engineering"]};
+const DAYS=[{"id":1,"area":"考试起步","title":"认证资格、考试格式与权威资料","study":"读官方指南第1–5节，了解60题、120分钟、场景题、五领域","practice":"画出申请考试的资格流程并列出当前障碍","feynman":"为什么考试成绩不等于客户软件安全验收？","links":["guide","exam","faq"]},{"id":2,"area":"考试起步","title":"五大领域与任务陈述","study":"将官方考纲五领域映射到此前的八个学习模块","practice":"标注擅长/薄弱章节和需要补充的实战","feynman":"为什么考试权重不等于产品开发的优先顺序？","links":["guide","prep"]},{"id":3,"area":"D1 架构与编排 · 27%","title":"Workflow / 单 Agent / 多 Agent","study":"研究预定义流程与模型驱动工具选择的差异","practice":"为十项员工培训任务选择最简单的架构","feynman":"何时不应该增加第二个 Agent？","links":["guide","agents"]},{"id":4,"area":"D1 架构与编排 · 27%","title":"Agent Loop 与停止条件","study":"学习工具调用、停止原因、工具结果回传及异常处理","practice":"画出带状态检查的 Agent Loop","feynman":"如何判断一次工具调用之后继续还是停止？","links":["guide","api"]},{"id":5,"area":"D1 架构与编排 · 27%","title":"Coordinator 与子代理","study":"学习分派、结果聚合和上下文隔离","practice":"设计 Supervisor / Records / Compliance 的输入输出契约","feynman":"子代理需要继承主代理的完整对话吗？","links":["guide","sub"]},{"id":6,"area":"D1 架构与编排 · 27%","title":"架构权衡案例","study":"研究多代理与固定流程的成本、风险、可靠性","practice":"比较三个不同规模机构的部署方案","feynman":"哪种架构最容易解释与审计？","links":["guide","agents"]},{"id":7,"area":"D2 工具与 MCP · 18%","title":"Tool 定义与 JSON Schema","study":"学习工具说明、参数约束和结构化结果","practice":"设计只读员工培训查询工具","feynman":"为什么工具描述影响模型选择？","links":["guide","api"]},{"id":8,"area":"D2 工具与 MCP · 18%","title":"MCP Client、Server、Tools","study":"学习 MCP 的三种核心原语与数据流向","practice":"画出 MCP 与本地数据库、权限验证的连接方式","feynman":"MCP 是否会自动为数据库提供权限隔离？","links":["guide","mcp"]},{"id":9,"area":"D2 工具与 MCP · 18%","title":"工具失败与最小权限","study":"分析工具错误、超时、非法参数、越权调用","practice":"构造四类错误并定义安全响应","feynman":"为什么 Prompt 不是最终的授权边界？","links":["guide","mcp"]},{"id":10,"area":"D2 工具与 MCP · 18%","title":"原生 API 与 MCP 的取舍","study":"判断何时只使用普通 API 即可","practice":"写一份不使用 MCP 的技术选择说明","feynman":"怎样识别为了新技术而过度设计？","links":["guide","mcp","platform"]},{"id":11,"area":"D3 Claude Code · 20%","title":"Claude Code 基本工作流程","study":"学习代码阅读、修改、测试、计划模式","practice":"记录一项模拟代码修改的验证过程","feynman":"代码已经生成就意味着交付完成了吗？","links":["guide","code"]},{"id":12,"area":"D3 Claude Code · 20%","title":"CLAUDE.md 与 Hooks","study":"学习项目级指令、hooks、外部审批与操作限制","practice":"整理项目规则与拦截点","feynman":"哪些安全控制不能只用 CLAUDE.md 实现？","links":["guide","codeact"]},{"id":13,"area":"D3 Claude Code · 20%","title":"Skills 与 Subagents","study":"比较重复 SOP 与独立子任务的不同用途","practice":"设计 Staff Training Skill 与 QA Subagent","feynman":"技能和子代理是同一种东西吗？","links":["guide","skills","sub"]},{"id":14,"area":"D3 Claude Code · 20%","title":"开发审查与 CI","study":"研究自动测试、代码评审及上线审批","practice":"给模拟工作流添加升级前检查清单","feynman":"为什么生产部署仍需要独立的验收机制？","links":["guide","codeact"]},{"id":15,"area":"D4 Prompt 与输出 · 20%","title":"明确指令、样本与不确定性","study":"学习结构化指令和 Few-shot 的适用场景","practice":"比较证书提取的两个 Prompt 版本","feynman":"为什么未知日期应保留为空而不能猜测？","links":["guide","api"]},{"id":16,"area":"D4 Prompt 与输出 · 20%","title":"JSON Schema 与验证","study":"学习结构化输出与校验失败处理","practice":"创建五条测试记录，包括无效类型与缺失字段","feynman":"一个 JSON 合法是否代表事实正确？","links":["guide","api"]},{"id":17,"area":"D4 Prompt 与输出 · 20%","title":"Evaluator–Optimizer 与测试","study":"学习反馈循环、上限、转人工条件","practice":"评测 20 条模拟证书，记录误报漏报","feynman":"什么时候继续重试反而更危险？","links":["guide","agents","eval"]},{"id":18,"area":"D5 上下文与可靠性 · 15%","title":"Context、Memory、RAG","study":"理解上下文筛选、来源保留和历史摘要","practice":"规划法规知识的来源与更新版本","feynman":"为什么更长上下文不等于更低幻觉率？","links":["guide","retrieval"]},{"id":19,"area":"D5 上下文与可靠性 · 15%","title":"观察性与人工升级","study":"学习错误传播、日志、停机条件与责任边界","practice":"设计超时、来源冲突、越权的处理路径","feynman":"何时停止模型尝试，转人工确认？","links":["guide","eval"]},{"id":20,"area":"综合案例","title":"五大领域端到端架构案例","study":"以模拟学校培训追踪为背景整合五个领域","practice":"解释输入→工具→模型→检查→人工审批→输出的流程","feynman":"用三分钟说明为什么这是可审核的架构","links":["guide","agents","prep"]},{"id":21,"area":"综合复盘","title":"官方示例题、薄弱点与报考决策","study":"阅读考试指南自带示例题；整理各领域低信心主题","practice":"完成个人备考清单与报名资格复核","feynman":"考试准备与真正产品能力之间还差什么？","links":["guide","faq","prep"]}];
+const DOMAINS=[["Agentic Architecture & Orchestration",27],["Tool Design & MCP Integration",18],["Claude Code Configuration & Workflows",20],["Prompt Engineering & Structured Output",20],["Context Management & Reliability",15]];
+const KEY='ccar_f_study_2026_v1';
+const initial=()=>({selected:1,records:{}});
+let state=initial();
+try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.records&&typeof v.records==='object')state={...initial(),...v}}catch(_){}
+const el=(id)=>document.getElementById(id);
+const escapeHtml=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){alert('本机保存失败，请先导出笔记。')}};
+const dayRec=()=>state.records[state.selected]||{};
+function show(){
+const d=DAYS[state.selected-1],rec=dayRec(),done=DAYS.filter(x=>state.records[x.id]?.done).length;
+el('summary').innerHTML='<b>学习进度 '+done+' / 21 天</b><div class="stats"><div class="bar"><div class="fill" style="width:'+(done/21*100).toFixed(1)+'%"></div></div></div><p class="small">完成标准：费曼复述和实战证据均已填写，并勾选完成。</p>';
+el('nav').innerHTML=DAYS.map(x=>'<button class="day '+(x.id===state.selected?'active':'')+'" data-jump="'+x.id+'">'+(state.records[x.id]?.done?'✓ ':'')+String(x.id).padStart(2,'0')+' · '+escapeHtml(x.title)+'</button>').join('');
+el('official').innerHTML=['guide','exam','prep','faq'].map(k=>'<div class="resource"><a href="'+escapeHtml(SOURCES[k][1])+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(SOURCES[k][0])+' ↗</a></div>').join('');
+el('domains').innerHTML=DOMAINS.map(x=>'<p class="small">'+escapeHtml(x[0])+' — <b>'+x[1]+'%</b></p>').join('');
+el('dayContent').innerHTML='<p class="tag">备考第 '+d.id+' 天 · '+escapeHtml(d.area)+'</p><h2>'+escapeHtml(d.title)+'</h2>'+
+'<div class="tip"><p><b>学习内容：</b>'+escapeHtml(d.study)+'</p><p><b>今日实践：</b>'+escapeHtml(d.practice)+'</p><p><b>费曼问题：</b>'+escapeHtml(d.feynman)+'</p></div>'+
+'<h3>当天对应的原始学习资料</h3>'+d.links.map((k,i)=>'<div class="resource">'+(i+1)+'. <a href="'+escapeHtml(SOURCES[k][1])+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(SOURCES[k][0])+' ↗</a></div>').join('')+
+'<label for="notes">原理笔记（不要只抄术语）</label><textarea class="tall" data-field="notes" id="notes" placeholder="记下机制、适用条件、来源和与 AfterSchool AI OS 的关系。">'+escapeHtml(rec.notes||'')+'</textarea>'+
+'<label for="teach">费曼复述：像向12岁的学生解释一样讲清楚</label><textarea class="tall" data-field="teach" id="teach" placeholder="'+escapeHtml(d.feynman)+'">'+escapeHtml(rec.teach||'')+'</textarea>'+
+'<label for="proof">动手实践与测试证据</label><textarea data-field="proof" id="proof" placeholder="什么操作真正运行成功？哪里失败？你如何验证？">'+escapeHtml(rec.proof||'')+'</textarea>'+
+'<label for="gaps">理解漏洞与下次复习目标</label><textarea data-field="gaps" id="gaps" placeholder="哪些问题仍然不懂？需复习哪一页官方文档？">'+escapeHtml(rec.gaps||'')+'</textarea>'+
+'<div class="row"><div><label>理解信心</label><select data-field="score"><option value="0">未评分</option>'+[1,2,3,4,5].map(n=>'<option value="'+n+'" '+(Number(rec.score)===n?'selected':'')+'>'+n+' / 5</option>').join('')+'</select></div><div><label>学习时长（分钟）</label><input type="number" min="0" max="1440" data-field="minutes" value="'+(Number(rec.minutes)||0)+'"></div></div>'+
+'<p><label style="font-weight:normal"><input type="checkbox" id="completed" '+(rec.done?'checked':'')+'> <b>本日已完成</b>（先完成费曼回答与实践证据）</label></p>'+
+'<div class="row"><button data-jump="'+(d.id-1)+'" '+(d.id===1?'disabled':'')+'>← 前一天</button><button class="primary" data-jump="'+(d.id+1)+'" '+(d.id===21?'disabled':'')+'>后一天 →</button></div>';
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(!b)return;const n=Number(b.dataset.jump);if(n<1||n>21)return;state.selected=n;save();show();el('dayContent').scrollIntoView({block:'start'})});
+el('dayContent').addEventListener('input',e=>{const field=e.target.dataset.field;if(!field)return;const r=dayRec();r[field]=['score','minutes'].includes(field)?Number(e.target.value)||0:e.target.value;state.records[state.selected]=r;save()});
+el('dayContent').addEventListener('change',e=>{if(e.target.id!=='completed')return;const r=dayRec();if(e.target.checked&&(!(r.teach||'').trim()||!(r.proof||'').trim())){alert('请先完成费曼复述和实践证据。');e.target.checked=false;return}r.done=e.target.checked;state.records[state.selected]=r;save();show()});
+el('export').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({format:'ccar-prep-backup',state},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Anthropic_CCAR_F_Notes_'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)});
+el('import').addEventListener('click',()=>el('file').click());
+el('file').addEventListener('change',async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;if(file.size>5e6){alert('文件太大');return}try{const obj=JSON.parse(await file.text());if(obj.format!=='ccar-prep-backup'||!obj.state?.records)throw Error('不是认证备考记录');if(!confirm('导入会覆盖本浏览器的认证备考笔记，确定吗？'))return;state={...initial(),...obj.state};save();show();alert('导入完成')}catch(err){alert(err.message)}});
+show();
+</script>
+</body></html>
