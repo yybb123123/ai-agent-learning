@@ -36,7 +36,14 @@ input[type=number],select{padding:7px;border:1px solid #bdc8d3;border-radius:5px
 <p><b>Claude Certified Architect – Foundations (CCAR-F)</b>：60 题，120 分钟，满分 1000 的量表中通过分数为 720。场景式选择题（含多选）；费用与资格以官方页面为准。</p>
 <div id="official"></div>
 <h3>五个官方考试领域</h3><div id="domains"></div></section>
-<section><div id="dayContent"></div></section>
+<section><h3>NotebookLM 讨论、可视化与音频</h3>
+<p class="small">认证备考可共用一个专门的 NotebookLM 笔记本。先自己创建并导入 Anthropic 官方学习资料，再将笔记本链接保存在下方。跳转后可以使用 NotebookLM 的对话、思维导图、信息图、测试和音频功能。</p>
+<label for="notebookUrl">我的 Anthropic 备考 NotebookLM 笔记本链接</label>
+<div class="row"><input id="notebookUrl" type="text" placeholder="https://notebook.google.com/notebook/..." autocomplete="off" style="width:min(100%,490px);flex:1;border:1px solid #bdc8d3;border-radius:5px;padding:9px"><button id="saveNotebook">保存链接</button></div>
+<div class="row" style="margin:10px 0" id="notebookStatus"></div>
+<div class="row"><button id="copyNotebookPrompt">复制今日讨论提纲</button><button id="copyNotebookSources">复制今日官方资料链接</button></div>
+<div class="notice" style="margin-top:10px">私人笔记本链接仅保存在你当前浏览器及这份认证备考的 JSON 备份中。复制文字不会自动创建资料来源、发起对话或同步结果。Google API 预览目前仍未开放聊天和 Studio 内容生成接口。</div>
+</section><section><div id="dayContent"></div></section>
 <section><h3>记录备份</h3><p class="small">此 21 天支线使用独立的浏览器存储。与主课程的 JSON 备份分开；更换手机或浏览器前请单独备份。</p>
 <div class="row"><button id="export">导出备考笔记 JSON</button><button id="import">导入备考笔记 JSON</button><input type="file" id="file" accept=".json,application/json" style="display:none"></div></section></main></div>
 <script>
@@ -45,7 +52,7 @@ const SOURCES={"guide":["官方 CCAR-F 考试指南 v1.1（PDF）","https://cc.s
 const DAYS=[{"id":1,"area":"考试起步","title":"认证资格、考试格式与权威资料","study":"读官方指南第1–5节，了解60题、120分钟、场景题、五领域","practice":"画出申请考试的资格流程并列出当前障碍","feynman":"为什么考试成绩不等于客户软件安全验收？","links":["guide","exam","faq"]},{"id":2,"area":"考试起步","title":"五大领域与任务陈述","study":"将官方考纲五领域映射到此前的八个学习模块","practice":"标注擅长/薄弱章节和需要补充的实战","feynman":"为什么考试权重不等于产品开发的优先顺序？","links":["guide","prep"]},{"id":3,"area":"D1 架构与编排 · 27%","title":"Workflow / 单 Agent / 多 Agent","study":"研究预定义流程与模型驱动工具选择的差异","practice":"为十项员工培训任务选择最简单的架构","feynman":"何时不应该增加第二个 Agent？","links":["guide","agents"]},{"id":4,"area":"D1 架构与编排 · 27%","title":"Agent Loop 与停止条件","study":"学习工具调用、停止原因、工具结果回传及异常处理","practice":"画出带状态检查的 Agent Loop","feynman":"如何判断一次工具调用之后继续还是停止？","links":["guide","api"]},{"id":5,"area":"D1 架构与编排 · 27%","title":"Coordinator 与子代理","study":"学习分派、结果聚合和上下文隔离","practice":"设计 Supervisor / Records / Compliance 的输入输出契约","feynman":"子代理需要继承主代理的完整对话吗？","links":["guide","sub"]},{"id":6,"area":"D1 架构与编排 · 27%","title":"架构权衡案例","study":"研究多代理与固定流程的成本、风险、可靠性","practice":"比较三个不同规模机构的部署方案","feynman":"哪种架构最容易解释与审计？","links":["guide","agents"]},{"id":7,"area":"D2 工具与 MCP · 18%","title":"Tool 定义与 JSON Schema","study":"学习工具说明、参数约束和结构化结果","practice":"设计只读员工培训查询工具","feynman":"为什么工具描述影响模型选择？","links":["guide","api"]},{"id":8,"area":"D2 工具与 MCP · 18%","title":"MCP Client、Server、Tools","study":"学习 MCP 的三种核心原语与数据流向","practice":"画出 MCP 与本地数据库、权限验证的连接方式","feynman":"MCP 是否会自动为数据库提供权限隔离？","links":["guide","mcp"]},{"id":9,"area":"D2 工具与 MCP · 18%","title":"工具失败与最小权限","study":"分析工具错误、超时、非法参数、越权调用","practice":"构造四类错误并定义安全响应","feynman":"为什么 Prompt 不是最终的授权边界？","links":["guide","mcp"]},{"id":10,"area":"D2 工具与 MCP · 18%","title":"原生 API 与 MCP 的取舍","study":"判断何时只使用普通 API 即可","practice":"写一份不使用 MCP 的技术选择说明","feynman":"怎样识别为了新技术而过度设计？","links":["guide","mcp","platform"]},{"id":11,"area":"D3 Claude Code · 20%","title":"Claude Code 基本工作流程","study":"学习代码阅读、修改、测试、计划模式","practice":"记录一项模拟代码修改的验证过程","feynman":"代码已经生成就意味着交付完成了吗？","links":["guide","code"]},{"id":12,"area":"D3 Claude Code · 20%","title":"CLAUDE.md 与 Hooks","study":"学习项目级指令、hooks、外部审批与操作限制","practice":"整理项目规则与拦截点","feynman":"哪些安全控制不能只用 CLAUDE.md 实现？","links":["guide","codeact"]},{"id":13,"area":"D3 Claude Code · 20%","title":"Skills 与 Subagents","study":"比较重复 SOP 与独立子任务的不同用途","practice":"设计 Staff Training Skill 与 QA Subagent","feynman":"技能和子代理是同一种东西吗？","links":["guide","skills","sub"]},{"id":14,"area":"D3 Claude Code · 20%","title":"开发审查与 CI","study":"研究自动测试、代码评审及上线审批","practice":"给模拟工作流添加升级前检查清单","feynman":"为什么生产部署仍需要独立的验收机制？","links":["guide","codeact"]},{"id":15,"area":"D4 Prompt 与输出 · 20%","title":"明确指令、样本与不确定性","study":"学习结构化指令和 Few-shot 的适用场景","practice":"比较证书提取的两个 Prompt 版本","feynman":"为什么未知日期应保留为空而不能猜测？","links":["guide","api"]},{"id":16,"area":"D4 Prompt 与输出 · 20%","title":"JSON Schema 与验证","study":"学习结构化输出与校验失败处理","practice":"创建五条测试记录，包括无效类型与缺失字段","feynman":"一个 JSON 合法是否代表事实正确？","links":["guide","api"]},{"id":17,"area":"D4 Prompt 与输出 · 20%","title":"Evaluator–Optimizer 与测试","study":"学习反馈循环、上限、转人工条件","practice":"评测 20 条模拟证书，记录误报漏报","feynman":"什么时候继续重试反而更危险？","links":["guide","agents","eval"]},{"id":18,"area":"D5 上下文与可靠性 · 15%","title":"Context、Memory、RAG","study":"理解上下文筛选、来源保留和历史摘要","practice":"规划法规知识的来源与更新版本","feynman":"为什么更长上下文不等于更低幻觉率？","links":["guide","retrieval"]},{"id":19,"area":"D5 上下文与可靠性 · 15%","title":"观察性与人工升级","study":"学习错误传播、日志、停机条件与责任边界","practice":"设计超时、来源冲突、越权的处理路径","feynman":"何时停止模型尝试，转人工确认？","links":["guide","eval"]},{"id":20,"area":"综合案例","title":"五大领域端到端架构案例","study":"以模拟学校培训追踪为背景整合五个领域","practice":"解释输入→工具→模型→检查→人工审批→输出的流程","feynman":"用三分钟说明为什么这是可审核的架构","links":["guide","agents","prep"]},{"id":21,"area":"综合复盘","title":"官方示例题、薄弱点与报考决策","study":"阅读考试指南自带示例题；整理各领域低信心主题","practice":"完成个人备考清单与报名资格复核","feynman":"考试准备与真正产品能力之间还差什么？","links":["guide","faq","prep"]}];
 const DOMAINS=[["Agentic Architecture & Orchestration",27],["Tool Design & MCP Integration",18],["Claude Code Configuration & Workflows",20],["Prompt Engineering & Structured Output",20],["Context Management & Reliability",15]];
 const KEY='ccar_f_study_2026_v1';
-const initial=()=>({selected:1,records:{}});
+const initial=()=>({selected:1,records:{},notebookUrl:''});
 let state=initial();
 try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.records&&typeof v.records==='object')state={...initial(),...v}}catch(_){}
 const el=(id)=>document.getElementById(id);
@@ -58,17 +65,61 @@ el('summary').innerHTML='<b>学习进度 '+done+' / 21 天</b><div class="stats"
 el('nav').innerHTML=DAYS.map(x=>'<button class="day '+(x.id===state.selected?'active':'')+'" data-jump="'+x.id+'">'+(state.records[x.id]?.done?'✓ ':'')+String(x.id).padStart(2,'0')+' · '+escapeHtml(x.title)+'</button>').join('');
 el('official').innerHTML=['guide','exam','prep','faq'].map(k=>'<div class="resource"><a href="'+escapeHtml(SOURCES[k][1])+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(SOURCES[k][0])+' ↗</a></div>').join('');
 el('domains').innerHTML=DOMAINS.map(x=>'<p class="small">'+escapeHtml(x[0])+' — <b>'+x[1]+'%</b></p>').join('');
+renderNotebookCompanion();
 el('dayContent').innerHTML='<p class="tag">备考第 '+d.id+' 天 · '+escapeHtml(d.area)+'</p><h2>'+escapeHtml(d.title)+'</h2>'+
 '<div class="tip"><p><b>学习内容：</b>'+escapeHtml(d.study)+'</p><p><b>今日实践：</b>'+escapeHtml(d.practice)+'</p><p><b>费曼问题：</b>'+escapeHtml(d.feynman)+'</p></div>'+
 '<h3>当天对应的原始学习资料</h3>'+d.links.map((k,i)=>'<div class="resource">'+(i+1)+'. <a href="'+escapeHtml(SOURCES[k][1])+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(SOURCES[k][0])+' ↗</a></div>').join('')+
 '<label for="notes">原理笔记（不要只抄术语）</label><textarea class="tall" data-field="notes" id="notes" placeholder="记下机制、适用条件、来源和与 AfterSchool AI OS 的关系。">'+escapeHtml(rec.notes||'')+'</textarea>'+
 '<label for="teach">费曼复述：像向12岁的学生解释一样讲清楚</label><textarea class="tall" data-field="teach" id="teach" placeholder="'+escapeHtml(d.feynman)+'">'+escapeHtml(rec.teach||'')+'</textarea>'+
 '<label for="proof">动手实践与测试证据</label><textarea data-field="proof" id="proof" placeholder="什么操作真正运行成功？哪里失败？你如何验证？">'+escapeHtml(rec.proof||'')+'</textarea>'+
-'<label for="gaps">理解漏洞与下次复习目标</label><textarea data-field="gaps" id="gaps" placeholder="哪些问题仍然不懂？需复习哪一页官方文档？">'+escapeHtml(rec.gaps||'')+'</textarea>'+
+'<label for="notebookResults">NotebookLM 讨论收获 / 图表与音频总结</label><textarea data-field="notebookResults" id="notebookResults" placeholder="记录基于来源的讨论要点、思维导图、音频摘要与存在争议的观点。">'+escapeHtml(rec.notebookResults||'')+'</textarea>'+'<label for="gaps">理解漏洞与下次复习目标</label><textarea data-field="gaps" id="gaps" placeholder="哪些问题仍然不懂？需复习哪一页官方文档？">'+escapeHtml(rec.gaps||'')+'</textarea>'+
 '<div class="row"><div><label>理解信心</label><select data-field="score"><option value="0">未评分</option>'+[1,2,3,4,5].map(n=>'<option value="'+n+'" '+(Number(rec.score)===n?'selected':'')+'>'+n+' / 5</option>').join('')+'</select></div><div><label>学习时长（分钟）</label><input type="number" min="0" max="1440" data-field="minutes" value="'+(Number(rec.minutes)||0)+'"></div></div>'+
 '<p><label style="font-weight:normal"><input type="checkbox" id="completed" '+(rec.done?'checked':'')+'> <b>本日已完成</b>（先完成费曼回答与实践证据）</label></p>'+
 '<div class="row"><button data-jump="'+(d.id-1)+'" '+(d.id===1?'disabled':'')+'>← 前一天</button><button class="primary" data-jump="'+(d.id+1)+'" '+(d.id===21?'disabled':'')+'>后一天 →</button></div>';
 }
+
+function notebookLink(value){
+ const raw=String(value||'').trim();if(!raw)return '';
+ try{const u=new URL(raw);if(u.protocol!=='https:'||u.username||u.password||!['notebook.google.com','notebooklm.google.com'].includes(u.hostname)||!u.pathname.startsWith('/notebook/'))return null;return u.href}catch(_){return null}
+}
+function renderNotebookCompanion(){
+ el('notebookUrl').value=state.notebookUrl||'';
+ const link=notebookLink(state.notebookUrl||'');
+ const url=link||'https://notebook.google.com/';
+ const host=el('notebookStatus');host.replaceChildren();
+ const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=link?'打开我的认证备考 NotebookLM →':'打开 Gemini Notebook 创建笔记本 →';
+ a.style.padding='8px 11px';a.style.border='1px solid #93bbd3';a.style.borderRadius='6px';a.style.background='#eaf2f8';a.style.fontWeight='600';
+ host.appendChild(a);
+}
+function getNotebookStudyLinks(){
+ const d=DAYS[state.selected-1];return d.links.map(key=>SOURCES[key]).filter(Boolean);
+}
+function notebookPrompt(){
+ const d=DAYS[state.selected-1];
+ return ['请作为专注来源证据的认证学习导师，仅依据本 Notebook 已经添加的官方资料回答；每个关键判断附上来源引用，资料不足时明确说明。',
+ 'Claude Certified Architect – Foundations 备考第 '+d.id+' 天：'+d.title,
+ '今日目标：'+d.study,'实践任务：'+d.practice,'我的费曼问题：'+d.feynman,
+ '请先问我三个循序渐进的苏格拉底式问题，测试我能否解释技术选择及其风险。',
+ '然后提供一个基于 AfterSchool AI OS 合成培训记录的架构情景，让我自行判断，最后指出思考漏洞。',
+ '请建议怎样利用本笔记本的 Studio 做成本主题的思维导图、信息图、测验和中文音频概览；不要把建议当成已经生成。',
+ '资料清单（复制提示词不会自动导入来源）：',
+ ...getNotebookStudyLinks().map(x=>x[0]+'：'+x[1])].join('\n\n');
+}
+async function copyNotebookText(v){
+ if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(v);alert('已经复制。请切换到 NotebookLM 粘贴使用。');return}catch(_){}}
+ const t=document.createElement('textarea');t.value=v;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();alert('已复制到剪贴板。');
+}
+el('saveNotebook').addEventListener('click',()=>{
+ const value=notebookLink(el('notebookUrl').value);
+ if(value===null){alert('请输入真实的 HTTPS Gemini Notebook / NotebookLM 笔记本地址（路径包含 /notebook/），或留空清除。');return}
+ state.notebookUrl=value;save();renderNotebookCompanion();alert(value?'已保存 NotebookLM 笔记本链接。':'已清除笔记本链接。');
+});
+el('copyNotebookPrompt').addEventListener('click',()=>copyNotebookText(notebookPrompt()));
+el('copyNotebookSources').addEventListener('click',()=>{
+ const d=DAYS[state.selected-1];
+ copyNotebookText(d.title+'\n\n'+getNotebookStudyLinks().map(x=>x[0]+'\n'+x[1]).join('\n\n'));
+});
+
 document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(!b)return;const n=Number(b.dataset.jump);if(n<1||n>21)return;state.selected=n;save();show();el('dayContent').scrollIntoView({block:'start'})});
 el('dayContent').addEventListener('input',e=>{const field=e.target.dataset.field;if(!field)return;const r=dayRec();r[field]=['score','minutes'].includes(field)?Number(e.target.value)||0:e.target.value;state.records[state.selected]=r;save()});
 el('dayContent').addEventListener('change',e=>{if(e.target.id!=='completed')return;const r=dayRec();if(e.target.checked&&(!(r.teach||'').trim()||!(r.proof||'').trim())){alert('请先完成费曼复述和实践证据。');e.target.checked=false;return}r.done=e.target.checked;state.records[state.selected]=r;save();show()});
