@@ -31,6 +31,7 @@
       <button data-tab="week">周总结与反馈</button>
       <button data-tab="dashboard">16 周总览</button>
       <button data-tab="resources">学习资料库</button>
+      <button data-tab="notebook">NotebookLM 讨论</button>
       <a href="./exam-prep.html" style="display:inline-flex;align-items:center;padding:7px 11px;border:1px solid #a3c2d8;background:#eaf2f8;border-radius:6px;font-size:13px;font-weight:650">Anthropic 认证备考（21 天）↗</a>
     </nav>
     <div class="notice"><strong>新增：Anthropic Architect – Foundations 备考资料。</strong> <a href="./exam-prep.html">打开 21 天备考计划、官方考试指南与每日费曼笔记 →</a>（主课程 112 天保留原样）</div><div id="content"></div>
@@ -84,7 +85,7 @@ const initialState=()=>({startDate:DEFAULT_START,selected:'1-1',tab:'day',days:{
 let state=initialState();
 try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(s&&typeof s==='object'&&s.days&&typeof s.days==='object'){state={...initialState(),...s,settings:{...initialState().settings,...(s.settings||{})}}}}catch(e){console.warn('读取本地记录失败',e)}
 let openWeek=Number((state.selected||'1-1').split('-')[0])||1;
-let tab=['day','week','dashboard','resources'].includes(state.tab)?state.tab:'day';
+let tab=['day','week','dashboard','resources','notebook'].includes(state.tab)?state.tab:'day';
 let search='';let aiMode='explain';let aiOnline=false;let aiBusy=false;let aiText='';let lastUsage=null;
 function persist(){try{state.tab=tab;localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch(e){alert('本地空间不足或浏览器阻止存储。请先备份学习记录，再清理空间。')}}
 function getDayId(w,d){return `${w}-${d}`}
@@ -105,6 +106,85 @@ function renderNav(){let matches=[];let src=search.trim().toLowerCase();if(src){
 function navDay(w,d){const id=getDayId(w,d.day);return `<button class="day-nav ${state.selected===id?'selected':''}" data-day="${id}"><span>${DAY_LABELS[d.day-1]} · ${h(d.title)}<\/span><span class="${completed(id)?'state-done':doneCount(id)?'state-progress':'tiny'}">${completed(id)?'✓':doneCount(id)?`${doneCount(id)}/3`:'·'}<\/span><\/button>`}
 function resourcesFor(day){return day.refs.map((key,i)=>{const r=CURRICULUM.resources[key];return `<div class="resource"><span class="number">${i+1}.<\/span><div><a href="${h(r.url)}" target="_blank" rel="noopener noreferrer">${h(r.title)}<\/a><small>${h(r.note)} · 外部资料，可能需要登录<\/small><\/div><\/div>`}).join('')}
 function textField(name,label,value,placeholder='',tall=false){return `<label class="field"><span>${h(label)}<\/span><textarea class="${tall?'large':''}" data-field="${h(name)}" placeholder="${h(placeholder)}">${h(value||'')}<\/textarea><\/label>`}
+
+const NB_HOME='https://notebook.google.com/';
+function notebookLinks(){
+ state.settings=state.settings||{};
+ if(!state.settings.notebookLinks||typeof state.settings.notebookLinks!=='object')state.settings.notebookLinks={weeks:{},days:{}};
+ const v=state.settings.notebookLinks;v.weeks=v.weeks||{};v.days=v.days||{};return v;
+}
+function checkNotebookUrl(value){
+ const src=String(value||'').trim();if(!src)return '';
+ try{const u=new URL(src);if(u.protocol!=='https:'||u.username||u.password||!['notebook.google.com','notebooklm.google.com'].includes(u.hostname))return null;
+ if(!u.pathname.startsWith('/notebook/'))return null;return u.href;
+ }catch(e){return null}
+}
+function notebookUrl(w,d){
+ const links=notebookLinks();
+ const personal=checkNotebookUrl(links.days[getDayId(w,d)]||'');
+ if(personal)return personal;
+ return checkNotebookUrl(links.weeks[String(w)]||'')||'';
+}
+function nbDeepLink(w,d,label){
+ const url=notebookUrl(w,d);return '<a href="'+h(url||NB_HOME)+'" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:8px 11px;border:1px solid #93bbd3;border-radius:6px;background:#eaf2f8;font-weight:650">'+h(url?label:'打开 Gemini Notebook 并创建笔记本')+' ↗</a>';
+}
+function notebookDiscussionPrompt(){
+ const m=getDayMeta(),d=m.day;
+ const urls=d.refs.map(k=>CURRICULUM.resources[k]).filter(Boolean);
+ return [
+ '你是一位严格的学习导师。只依据本笔记本已经导入的来源回答，提供来源引用；如果来源不足，请明确说明缺口，不要猜测。',
+ '课程：AI Agent 学习计划 / 第 '+m.w+' 周第 '+m.d+' 天：'+d.title,
+ '今天理解的核心知识：'+d.learn,
+ '实践任务：'+d.practice,
+ '我的费曼复述挑战：'+d.feynman,
+ '请完成：',
+ '1. 用通俗中文解释核心概念、使用边界和常见错误，并注明来源。',
+ '2. 向我提出3个层层递进的苏格拉底式问题，先不要直接给答案。',
+ '3. 针对 AfterSchool AI OS（MA EEC School-Age Staff Training Tracker）给出一个使用合成数据的案例，说明选择普通代码、工作流或 Agent 的条件。',
+ '4. 告诉我如何使用 Studio 把本主题做成思维导图/信息图、复习测验和中文音频概览。生成内容在 Notebook 中由我手动操作。',
+ '以下是本网站列出的公开学习资料。注意：这些链接不会通过复制提示词自动导入笔记本，请先把需要的来源添加到 Notebook。',
+ ...urls.map(x=>'- '+x.title+'：'+x.url),
+ '不要代替我完成费曼练习；先指出证据不足之处，再让我自己修正。'
+ ].join('\n');
+}
+function notebookSourcesText(){
+ const d=getDayMeta().day;
+ return '学习主题：'+d.title+'\n\n'+d.refs.map(k=>CURRICULUM.resources[k]).filter(Boolean).map(x=>x.title+'\n'+x.url).join('\n\n');
+}
+function notebookSection(w,d,day,r){
+ const links=notebookLinks(),weekLink=links.weeks[String(w)]||'',dayLink=links.days[getDayId(w,d)]||'';
+ return `<section class="section"><h3>05 · NotebookLM 资料讨论、图表与音频</h3>
+ <p class="muted" style="font-size:13px">先关联本周笔记本（同一周的 7 天可共用），需要时为当天单独指定笔记本。点击即可前往 NotebookLM 的完整对话与 Studio 页面。</p>
+ <div class="row" style="margin:11px 0">${nbDeepLink(w,d,'打开今日 NotebookLM 讨论 / Studio')}<button data-nb-prompt>复制今日讨论提纲</button><button data-nb-sources>复制今日资料清单</button></div>
+ <label class="field"><span>本周 NotebookLM 私人笔记本链接</span><input type="text" data-nb-input="week" value="${h(weekLink)}" placeholder="https://notebook.google.com/notebook/..." autocomplete="off"></label>
+ <button style="margin-top:7px" data-nb-save="week">保存本周链接</button>
+ <label class="field"><span>今日专属链接（可选，优先于本周）</span><input type="text" data-nb-input="day" value="${h(dayLink)}" placeholder="留空则继承本周链接" autocomplete="off"></label>
+ <button style="margin-top:7px" data-nb-save="day">保存今日链接</button>
+ <div class="notice">链接只保存在你当前浏览器及学习备份文件中，不会提交到公开 GitHub。必须在 NotebookLM 中使用相应的 Google 账号登录。<strong>复制提示词不会自动添加资料、提交问题或把 NotebookLM 对话同步回来。</strong></div>
+ ${textField('notebookSummary','NotebookLM 讨论收获 / 图表与音频笔记',r.notebookSummary,'讨论后记录误区、来源引用、思维导图发现与待验证观点。')}
+ </section>`;
+}
+function renderNotebookHub(){
+ const m=getDayMeta(),links=notebookLinks();
+ const w=m.w,d=m.d;
+ $('#content').innerHTML=`<div class="eyebrow">NotebookLM / Gemini Notebook · 当前课程伴学</div>
+ <h2 style="margin:5px 0 10px">讨论与 Studio 工作区</h2>
+ <p class="lead">你的学习网页记录计划、费曼复述与反馈；NotebookLM 负责依据来源对话、思维导图、信息图、演示、测验和音频。无需 API Key，直接点击已绑定的笔记本。</p>
+ <div class="row">${nbDeepLink(w,d,'打开当前课程的 NotebookLM')}<button data-nb-prompt>复制当前课程讨论提示词</button><button data-nb-sources>复制资料链接供添加来源</button></div>
+ <section class="section"><h3>设置第 ${w} 周笔记本</h3>
+ <p class="muted">建议每周一个笔记本：先在 NotebookLM 创建笔记本、加入该周资料，在地址栏复制笔记本 URL，粘贴保存。</p>
+ <label class="field"><span>本周笔记本地址</span><input type="text" data-nb-input="week" value="${h(links.weeks[String(w)]||'')}" placeholder="https://notebook.google.com/notebook/..." autocomplete="off"></label>
+ <button style="margin-top:7px" data-nb-save="week">保存本周链接</button>
+ <label class="field"><span>当前当天的专属笔记本（可选）</span><input type="text" data-nb-input="day" value="${h(links.days[getDayId(w,d)]||'')}" placeholder="留空时使用本周笔记本" autocomplete="off"></label>
+ <button style="margin-top:7px" data-nb-save="day">保存当天链接</button>
+ <div class="notice">私人笔记本链接是当前浏览器的设置，会包含在主学习网页的 JSON 备份中。公开站点不会自动看到它；复制备份到其他设备时，请妥善保管备份。</div></section>
+ <section class="section"><h3>16 周笔记本映射</h3><table class="table"><thead><tr><th>课程</th><th>笔记本</th><th>操作</th></tr></thead><tbody>
+ ${CURRICULUM.weeks.map(x=>`<tr><td>W${String(x.week).padStart(2,'0')} · ${h(x.title)}</td><td>${links.weeks[String(x.week)]?'已关联':'未关联'}</td><td><button data-nb-jump-week="${x.week}" class="small">查看 / 设置</button></td></tr>`).join('')}
+ </tbody></table></section>
+ <section class="section"><h3>Google 官方资料</h3><div class="resource"><div><a href="https://developers.google.com/notebook/docs" target="_blank" rel="noopener noreferrer">Gemini Notebook 官方 API（2026 年公开预览）</a><small>当前支持创建笔记本、管理来源；尚未开放聊天问答及 Studio 内容生成 API</small></div></div>
+ <div class="resource"><div><a href="https://developers.google.com/notebook/docs/roadmap" target="_blank" rel="noopener noreferrer">Notebook API 后续路线图</a><small>检索笔记本知识与生成 Studio artifacts 仍在规划中</small></div></div></section>`;
+}
+
 function renderDay(){const info=getDayMeta();if(!info)return;const {w,d,week,day}=info;const r=rec();const status=completed(state.selected)?'已完成':doneCount(state.selected)?'进行中':'待开始';const date=dateFor(w,d);$('#content').innerHTML=`
   <div class="eyebrow">第 ${w} 周 · ${DAY_LABELS[d-1]} · ${h(day.mode)} · ${h(formatDate(date))}<\/div>
   <h2 style="margin-top:5px">D${String((w-1)*7+d).padStart(3,'0')}｜${h(day.title)}<\/h2>
@@ -123,7 +203,8 @@ function renderDay(){const info=getDayMeta();if(!info)return;const {w,d,week,day
   ${FEYN_FIELDS.map(([k,l,p])=>textField('feyn.'+k,l,r.feyn?.[k],p,k==='explain')).join('')}
   <div class="row" style="margin-top:9px"><button data-feyn-ai class="primary">请 AI 点评我的五步复述<\/button><button data-copy-feyn>复制费曼笔记<\/button><\/div>
   <\/section>
-  <section class="section"><h3>05 · 学习笔记、反馈与总结<\/h3>
+  ${notebookSection(w,d,day,r)}
+  <section class="section"><h3>06 · 学习笔记、反馈与总结<\/h3>
   ${textField('notes','学习笔记 / 自己的知识分析',r.notes,'例：原理是什么、什么时候使用、和普通自动化有什么区别？',true)}
   ${textField('blockers','仍然不懂 / 出错 / 需要补学',r.blockers,'保留具体错误信息、复现步骤；不要粘贴 API Key 和真实客户数据。')}
   ${textField('summary','今日学习总结（必填以完成）',r.summary,'今天掌握了什么？做出了什么？有什么证据？',true)}
@@ -136,9 +217,29 @@ function weekStats(w){const entries=Array.from({length:7},(_,i)=>rec(getDayId(w,
 function renderWeek(){const {w,week}=getDayMeta();const data=state.weekly[String(w)]||{};const stats=weekStats(w);$('#content').innerHTML=`<div class="eyebrow">第 ${w} 周 · 学习总结与反馈<\/div><h2 style="margin:6px 0 12px">${h(week.title)}<\/h2><div class="statcards"><div class="statcard"><strong>${weekComplete(w)}/7<\/strong><small>完成天数<\/small><\/div><div class="statcard"><strong>${stats.mins}<\/strong><small>记录学习分钟<\/small><\/div><div class="statcard"><strong>${stats.avg}<\/strong><small>平均信心 / 5<\/small><\/div><\/div><section class="section"><h3>本周具体任务复盘<\/h3><p class="lead">本周目标：${h(week.objective)}。验收产物：${h(week.deliverable)}。<\/p><ol class="weekly-list">${week.days.map((d,i)=>`<li><button class="small" data-jump="${w}-${i+1}">${completed(getDayId(w,i+1))?'✓':'○'} ${h(d.title)}<\/button> — ${h(d.deliverable)}<\/li>`).join('')}<\/ol><\/section><section class="section"><h3>费曼周复盘<\/h3><p class="muted">不查资料，用简单语言解释本周最重要的知识，并写出一个可测试的例子。<\/p>${textField('weekly.achievements','本周实际完成的证据',data.achievements,'不要只写“学习完成”；应包含工作流文件、测试结果和相关链接。',true)}${textField('weekly.teach','三分钟费曼讲解稿',data.teach,`向初学者解释：${week.objective}`,true)}${textField('weekly.mistakes','本周误区与失败',data.mistakes,week.risk)}${textField('weekly.improvements','下周改进策略',data.improvements,'明确需要删掉、修改或新加入哪项练习。')}${textField('weekly.youtube','可转为 YouTube 的原创素材',data.youtube,'真实故事、失败对照、数据及允许公开的录屏片段。')}<div class="row" style="margin-top:12px"><button data-week-ai class="primary">请 AI 评估本周学习<\/button><button data-go-dashboard>查看总览<\/button><\/div><\/section>`}
 function renderDashboard(){const total=countDone();const mins=Object.values(state.days).reduce((s,r)=>s+(Number(r.minutes)||0),0);const attempts=Object.values(state.days).filter(r=>r.steps&&Object.values(r.steps).some(Boolean)).length;$('#content').innerHTML=`<div class="eyebrow">16 周 · 数据看板<\/div><h2 style="margin:5px 0 12px">学习进度与交付检查<\/h2><div class="statcards"><div class="statcard"><strong>${total}<\/strong><small>完成天数 / 112<\/small><\/div><div class="statcard"><strong>${attempts}<\/strong><small>已开始学习天数<\/small><\/div><div class="statcard"><strong>${mins}<\/strong><small>记录的分钟<\/small><\/div><\/div><section class="section"><h3>全部 16 周<\/h3><table class="table"><thead><tr><th>周次<\/th><th>学习主题<\/th><th>任务进度<\/th><th>预定产物<\/th><\/tr><\/thead><tbody>${CURRICULUM.weeks.map(w=>`<tr><td><button class="small" data-open-week="${w.week}">W${String(w.week).padStart(2,'0')}<\/button><\/td><td>${h(w.title)}<br><span class="tiny">${h(w.module)} / ${h(w.extras.join(', '))}<\/span><\/td><td>${weekComplete(w.week)}/7<div class="tinybar"><b style="width:${weekComplete(w.week)/7*100}%"><\/b><\/div><\/td><td>${h(w.deliverable)}<\/td><\/tr>`).join('')}<\/tbody><\/table><\/section><section class="section"><h3>质量提醒<\/h3><div class="analysis"><p>完成打勾只是行为记录，不等于已掌握。请结合费曼复述、运行结果、测试证据和真实客户反馈判断实际学习效果。<\/p><p>系统不会自动打开学习链接或读取第三方内容，也不会自主判断你是否通过官方认证。<\/p><\/div><\/section>`}
 function renderResources(){const sources=Object.entries(CURRICULUM.resources).sort((a,b)=>a[1].title.localeCompare(b[1].title));$('#content').innerHTML=`<div class="eyebrow">参考资料库<\/div><h2 style="margin:5px 0 12px">${sources.length} 条学习资源<\/h2><p class="lead">官方文档、公开课程、外部教程和认证入口。每天课程会指向其中最相关的资料；本页只是索引，不是外部文章的复制版。<\/p><div class="resource-grid">${sources.map(([key,r])=>`<div class="resource"><span class="number">↗<\/span><div><a href="${h(r.url)}" target="_blank" rel="noopener noreferrer">${h(r.title)}<\/a><small>${h(r.note)}<\/small><\/div><\/div>`).join('')}<\/div>`}
-function render(){renderSummary();renderNav();document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));if(tab==='day')renderDay();if(tab==='week')renderWeek();if(tab==='dashboard')renderDashboard();if(tab==='resources')renderResources();renderAiHistory()}
+function render(){renderSummary();renderNav();document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));if(tab==='day')renderDay();if(tab==='week')renderWeek();if(tab==='dashboard')renderDashboard();if(tab==='resources')renderResources();if(tab==='notebook')renderNotebookHub();renderAiHistory()}
 function copyText(text){if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(()=>alert('已复制到剪贴板')).catch(()=>alert('复制失败，请手动选择文本。'))}else{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('已复制。')}}
 function feynmanText(){const {day}=getDayMeta();const r=rec();return `今日问题：${day.feynman}\n${FEYN_FIELDS.map(([key,title])=>`${title}\n${r.feyn?.[key]||'（未填写）'}`).join('\n\n')}`}
+
+$('#content').addEventListener('click',e=>{
+ const bt=e.target.closest('button');
+ if(!bt)return;
+ if(bt.hasAttribute('data-nb-save')){
+  const kind=bt.dataset.nbSave,field=$('#content [data-nb-input="'+kind+'"]');
+  if(!field)return;const url=checkNotebookUrl(field.value);
+  if(url===null){alert('请输入 NotebookLM/Gemini Notebook 真实的 HTTPS 笔记本地址，例如 https://notebook.google.com/notebook/...；也可以清空链接。');return}
+  const m=getDayMeta(),links=notebookLinks();
+  if(kind==='week'){if(url)links.weeks[String(m.w)]=url;else delete links.weeks[String(m.w)]}
+  if(kind==='day'){const key=getDayId(m.w,m.d);if(url)links.days[key]=url;else delete links.days[key]}
+  persist();if(tab==='notebook')renderNotebookHub();else renderDay();alert(url?'笔记本链接已保存到本浏览器。':'已清除该笔记本链接。');return;
+ }
+ if(bt.hasAttribute('data-nb-prompt')){copyText(notebookDiscussionPrompt());return}
+ if(bt.hasAttribute('data-nb-sources')){copyText(notebookSourcesText());return}
+ if(bt.hasAttribute('data-nb-jump-week')){
+  const w=Number(bt.dataset.nbJumpWeek);if(w>=1&&w<=16){state.selected=getDayId(w,1);openWeek=w;persist();renderNotebookHub()}return
+ }
+});
+
 $('#sidebarNav').addEventListener('click',e=>{const d=e.target.closest('[data-day]');if(d){setSelected(d.dataset.day);return}const w=e.target.closest('[data-week]');if(w){openWeek=Number(w.dataset.week);renderNav()}});
 $('#search').addEventListener('input',e=>{search=e.target.value;renderNav()});
 document.querySelector('.nav-tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;tab=b.dataset.tab;persist();render()});
