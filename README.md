@@ -19,6 +19,17 @@
 
 官方课程学习时长与章节数量以 Anthropic Academy 当前页面为准；本网站的中文课程提纲和每周安排为非官方自学计划，不是课程原文全文。
 
+## Mac 与 iPhone 个人学习进度同步（Cloudflare D1）
+
+**[完整配置说明：仅需创建一个 D1 数据库、绑定至现有 Worker、重新部署最新版 Worker 代码](./cloudflare/STUDY-SYNC.md)**。
+
+- 已在三个学习网页加入同步控制：112 天主课程、21 天 CCAR-F 认证备考、七门 Anthropic 课程（48 次学习）。
+- 点击「连接并同步」后使用 Cloudflare D1 存储自己的学习记录。以后修改课程笔记、完成进度和总结时自动尝试同步，并在页面重新获得焦点时检查更新。
+- 由原有 `STUDY_ACCESS_TOKEN` 保护私人的同步接口，不需要购买新的 AI 模型或修改 DeepSeek API Key。
+- 三方合并逻辑在手机/电脑修改不同笔记时保留双方改动；对同一字段的冲突暂停自动同步，允许先下载两个完整副本，再选择处理方式。
+- 默认访问口令只存在该浏览器标签页的 sessionStorage，关闭标签页后可能需要重新输入。云端数据不会公开到 GitHub；不是端到端加密。
+- **需要用户在自己的 Cloudflare 控制台创建 D1 并把 GitHub 的最新 Worker 重新 Deploy，才能真正启用同步。仓库提交本身不等于已经启用。**
+
 ## DeepSeek 在线学习助教（GitHub Pages 手机端）
 
 主学习网页已支持使用 [Cloudflare Worker 安全中转服务](./cloudflare/deepseek-worker.js) 调用 DeepSeek，不再被 GitHub Pages 静态页面限制。
