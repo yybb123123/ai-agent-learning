@@ -3,10 +3,21 @@
 ## 在线使用
 
 - [AI Agent 16 周 / 112 天主课程](https://yybb123123.github.io/ai-agent-learning/)
+- [Anthropic 七门免费课程 · 16 周课程表](https://yybb123123.github.io/ai-agent-learning/anthropic-courses.html)
 - [Anthropic CCAR-F 21 天认证备考](https://yybb123123.github.io/ai-agent-learning/exam-prep.html)
 - [官方 Claude Certified Architect – Foundations 认证页](https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification)
 - [官方考试指南 v1.1 PDF](https://cc.sj-cdn.net/instructor/6nizmqk8tpzpfjvt6qmmav7rh/public/1794946250/Claude_Certified_Architect_-_Foundations_Exam_Guide.pdf)
 - [官方备考课程目录](https://anthropic-partners.skilljar.com/page/claude-certification-exam-prep-courses)
+
+## Anthropic 官方七门免费课程 · 16 周学习日程
+
+[直接打开七门课程学习页面](https://yybb123123.github.io/ai-agent-learning/anthropic-courses.html)
+
+已根据 [Anthropic CCAR-F 官方推荐课程](https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification) 补充七门课程的 **官方原始链接、中文学习内容提纲、独立16周日程、每周三次共48个学习任务、费曼问题、动手练习、课程完成记录、个人笔记和独立 JSON 导入导出**。并与 112 天主课程第 2、4、6 天关联；21 天认证备考页面也能直接进入。主课程内容及原有进度存储未被覆盖。
+
+课程原始官方学习时长约 34 小时（不含本学习网站额外实践和复盘）。AWS / Google Cloud 相关课程可以先以阅读、架构和合成数据练习为主，**不会默认创建收费云资源或调用收费 API**。相关课程页面免费不代表对应的云服务、API 或个别进阶功能免费。
+
+官方课程学习时长与章节数量以 Anthropic Academy 当前页面为准；本网站的中文课程提纲和每周安排为非官方自学计划，不是课程原文全文。
 
 ## DeepSeek 在线学习助教（GitHub Pages 手机端）
 
