@@ -35,12 +35,66 @@ function json(data, status, cors) {
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, X-Study-Token",
     "Access-Control-Max-Age": "600",
     "Vary": "Origin"
   };
 }
+
+// D1 stores the owner's personal learning notes (not customer data).
+// This is not end-to-end encrypted. Sync requests never call DeepSeek.
+const STUDY_SCOPES = new Set(["main", "exam", "courses"]);
+const MAX_SYNC_BYTES = 700000;
+const CREATE_PROGRESS_TABLE = "CREATE TABLE IF NOT EXISTS learning_sync (scope TEXT PRIMARY KEY NOT NULL, revision INTEGER NOT NULL, payload TEXT NOT NULL, updated_at TEXT NOT NULL)";
+async function handleProgressSync(request, env, cors, scope) {
+  if (!STUDY_SCOPES.has(scope)) return json({ error: "未知学习计划。" }, 404, cors);
+  if (!env.STUDY_DB) return json({ error: "尚未绑定 Cloudflare D1：请添加数据库绑定 STUDY_DB。" }, 503, cors);
+  if (!["GET", "PUT"].includes(request.method)) return json({ error: "不支持的同步操作。" }, 405, cors);
+  try {
+    await env.STUDY_DB.prepare(CREATE_PROGRESS_TABLE).run();
+    const query = "SELECT revision, payload, updated_at FROM learning_sync WHERE scope = ? LIMIT 1";
+    if (request.method === "GET") {
+      const found = await env.STUDY_DB.prepare(query).bind(scope).first();
+      return json({
+        scope, revision: found?.revision ?? 0,
+        data: found ? JSON.parse(found.payload) : null,
+        updatedAt: found?.updated_at ?? null
+      }, 200, cors);
+    }
+    const sizeHeader = Number(request.headers.get("Content-Length") || 0);
+    if (sizeHeader > MAX_SYNC_BYTES + 10000) return json({ error: "学习记录超过同步大小限制，请先导出备份。" }, 413, cors);
+    if (!(request.headers.get("Content-Type") || "").toLowerCase().startsWith("application/json")) return json({ error: "请使用 application/json。" }, 415, cors);
+    const raw = await request.text();
+    if (new TextEncoder().encode(raw).byteLength > MAX_SYNC_BYTES + 10000) return json({ error: "学习记录超过同步大小限制。" }, 413, cors);
+    const input = JSON.parse(raw);
+    const revision = input?.baseRevision;
+    const data = input?.data;
+    if (!Number.isSafeInteger(revision) || revision < 0 || !data || typeof data !== "object" || Array.isArray(data)) {
+      return json({ error: "同步参数无效。" }, 400, cors);
+    }
+    const content = JSON.stringify(data);
+    if (new TextEncoder().encode(content).byteLength > MAX_SYNC_BYTES) return json({ error: "学习记录太大，请先导出 JSON 备份。" }, 413, cors);
+    const now = new Date().toISOString();
+    let wrote = false;
+    if (revision === 0) {
+      const result = await env.STUDY_DB.prepare(
+        "INSERT OR IGNORE INTO learning_sync (scope, revision, payload, updated_at) VALUES (?, 1, ?, ?)"
+      ).bind(scope, content, now).run();
+      wrote = (result.meta?.changes ?? 0) === 1;
+    } else {
+      const result = await env.STUDY_DB.prepare(
+        "UPDATE learning_sync SET revision = revision + 1, payload = ?, updated_at = ? WHERE scope = ? AND revision = ?"
+      ).bind(content, now, scope, revision).run();
+      wrote = (result.meta?.changes ?? 0) === 1;
+    }
+    if (!wrote) return json({ error: "云端记录已由另一台设备更新，请重新合并。", conflict: true }, 409, cors);
+    return json({ scope, revision: revision + 1, updatedAt: now }, 200, cors);
+  } catch (_) {
+    return json({ error: "学习同步服务暂不可用：检查 D1 绑定与账户配额。" }, 503, cors);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin");
@@ -62,6 +116,9 @@ export default {
     }
     if (path === "/api/status" && request.method === "GET") {
       return json({ ready: true }, 200, cors);
+    }
+    if (path.startsWith("/api/sync/")) {
+      return handleProgressSync(request, env, cors, path.slice("/api/sync/".length));
     }
     if (path !== "/api/chat" || request.method !== "POST") {
       return json({ error: "Unknown endpoint." }, 404, cors);
