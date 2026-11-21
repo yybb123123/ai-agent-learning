@@ -222,7 +222,7 @@ function start(config){
   '<label>个人访问口令（STUDY_ACCESS_TOKEN，不是 DeepSeek API Key）<input type="password" id="studySyncToken" autocomplete="off"></label></div>'+
   '<div><button type="button" id="studySyncConnect">连接并同步</button><button type="button" id="studySyncNow">立即同步</button>'+
   '<button type="button" id="studySyncCloudBackup">导出云端 JSON</button><button type="button" id="studySyncPause">停止本标签页同步</button></div>'+
-  '<div style="font-size:12px;color:#526879;margin-top:5px">连接后在本标签页有效，课程编辑后自动同步；使用多个设备时分别开启。学习记录保存在你的 Cloudflare D1 中，不公开到 GitHub。发生冲突不会自动覆盖；请定期另存原有 JSON 备份。</div>'+
+  '<div style="font-size:12px;color:#526879;margin-top:5px">连接后在本标签页有效，课程编辑后自动同步；使用多个设备时分别开启。学习记录保存在你的 Cloudflare D1 中，不公开到 GitHub。发生冲突不会自动覆盖；请定期另存原有 JSON 备份。<a href="./cloudflare/STUDY-SYNC.md" target="_blank" rel="noopener noreferrer">Cloudflare D1 配置说明 ↗</a></div>'+
   '<div id="studySyncConflict" class="syncWarn" hidden><strong>有修改冲突</strong><p id="studySyncConflictText"></p>'+
   '<button id="studySyncLocalBackup">下载本机副本</button><button id="studySyncRemoteBackup">下载云端副本</button>'+
   '<button id="studySyncKeepLocal">以本机版本为准</button><button id="studySyncKeepCloud">以云端版本为准</button></div>';
