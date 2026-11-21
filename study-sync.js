@@ -9,6 +9,7 @@
 const DEFAULT_WORKER = "https://asos-study-deepseek.coolloveice.workers.dev";
 const MASTER_KEY = "asos_study_workspace_2026_v1";
 const SESSION_TOKEN_KEY = "study_sync_tab_token_v1";
+const DEVICE_TOKEN_KEY = "study_sync_private_device_token_v1";
 const SESSION_WORKER_KEY = "study_sync_worker_v1";
 const PREFIX = "study_sync_base_v1_";
 const MISSING = Symbol("missing");
@@ -206,7 +207,7 @@ function start(config){
  if(!["main","exam","courses"].includes(config.scope)||typeof config.get!=="function"||typeof config.apply!=="function")throw Error("Invalid StudySync config");
  cfg=config;
  worker=validateWorker(sessionStorage.getItem(SESSION_WORKER_KEY)||"")||masterWorker()||DEFAULT_WORKER;
- token=sessionStorage.getItem(SESSION_TOKEN_KEY)||"";
+ token=sessionStorage.getItem(SESSION_TOKEN_KEY)||localStorage.getItem(DEVICE_TOKEN_KEY)||"";
  const css=document.createElement("style");css.textContent=
  "#studySyncPanel{max-width:1160px;margin:12px auto;padding:13px;border:1px solid #bdd2e0;border-radius:9px;background:#f2f8fc;color:#1b3347;font:13px/1.6 -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif}"+
  "#studySyncPanel input{width:100%;min-width:0;padding:8px;border:1px solid #b5c7d5;border-radius:6px;background:white}"+
@@ -220,14 +221,16 @@ function start(config){
  panel.innerHTML='<strong>☁️ 手机与电脑学习进度同步</strong> · <span id="studySyncStatus">仅本地保存；连接后可云端同步</span>'+
   '<div class="syncFields"><label>Cloudflare Worker 地址<input id="studySyncUrl" inputmode="url" placeholder="https://...workers.dev" autocomplete="off"></label>'+
   '<label>个人访问口令（STUDY_ACCESS_TOKEN，不是 DeepSeek API Key）<input type="password" id="studySyncToken" autocomplete="off"></label></div>'+
+  '<label style="display:flex;align-items:center;gap:6px;font-size:12px;margin:5px 0"><input id="studySyncRemember" type="checkbox" style="width:auto"> 在这台私人设备记住口令，下次自动连接</label>'+
   '<div><button type="button" id="studySyncConnect">连接并同步</button><button type="button" id="studySyncNow">立即同步</button>'+
-  '<button type="button" id="studySyncCloudBackup">导出云端 JSON</button><button type="button" id="studySyncPause">停止本标签页同步</button></div>'+
-  '<div style="font-size:12px;color:#526879;margin-top:5px">连接后在本标签页有效，课程编辑后自动同步；使用多个设备时分别开启。学习记录保存在你的 Cloudflare D1 中，不公开到 GitHub。发生冲突不会自动覆盖；请定期另存原有 JSON 备份。<a href="./cloudflare/STUDY-SYNC.md" target="_blank" rel="noopener noreferrer">Cloudflare D1 配置说明 ↗</a></div>'+
+  '<button type="button" id="studySyncCloudBackup">导出云端 JSON</button><button type="button" id="studySyncPause">停止本标签页同步</button><button type="button" id="studySyncForget">忘记本机保存的口令</button></div>'+
+  '<div style="font-size:12px;color:#526879;margin-top:5px">不勾选时仅在当前标签页会话保存口令；勾选后存入这台设备的浏览器 localStorage，关闭再打开可以自动连接。仅限私人设备使用：浏览器扩展或被注入的网页脚本可能读取该口令。学习记录存于你的 Cloudflare D1，遇到冲突会暂停自动同步。请定期另存 JSON 备份。<a href="./cloudflare/STUDY-SYNC.md" target="_blank" rel="noopener noreferrer">Cloudflare D1 配置说明 ↗</a></div>'+
   '<div id="studySyncConflict" class="syncWarn" hidden><strong>有修改冲突</strong><p id="studySyncConflictText"></p>'+
   '<button id="studySyncLocalBackup">下载本机副本</button><button id="studySyncRemoteBackup">下载云端副本</button>'+
   '<button id="studySyncKeepLocal">以本机版本为准</button><button id="studySyncKeepCloud">以云端版本为准</button></div>';
  const h=document.querySelector("header");if(h)h.insertAdjacentElement("afterend",panel);else document.body.insertBefore(panel,document.body.firstChild);
  $("studySyncUrl").value=worker;$("studySyncToken").value=token;
+ $("studySyncRemember").checked=Boolean(localStorage.getItem(DEVICE_TOKEN_KEY));
  // Share this tab's study access token with the existing DeepSeek assistant.
  const deepSeekToken=$("studyToken");
  if(deepSeekToken&&token&&!deepSeekToken.value)deepSeekToken.value=token;
@@ -238,6 +241,8 @@ function start(config){
   worker=url;token=entered;
   sessionStorage.setItem(SESSION_WORKER_KEY,worker);
   sessionStorage.setItem(SESSION_TOKEN_KEY,token);
+  if($("studySyncRemember").checked)localStorage.setItem(DEVICE_TOKEN_KEY,token);
+  else localStorage.removeItem(DEVICE_TOKEN_KEY);
   if(deepSeekToken)deepSeekToken.value=token;
   if(typeof cfg.onWorker==="function")cfg.onWorker(worker);
   enabled=true;paused=false;conflicts=null;renderConflict();await sync(true);
@@ -250,8 +255,16 @@ function start(config){
  $("studySyncPause").addEventListener("click",()=>{
   enabled=false;paused=false;conflicts=null;clearTimeout(timer);
   sessionStorage.removeItem(SESSION_TOKEN_KEY);token="";$("studySyncToken").value="";
+  // A remembered token remains stored until the user explicitly forgets it.
   if(deepSeekToken)deepSeekToken.value="";
-  renderConflict();status("同步已停止；当前设备仍可继续离线记笔记。");
+  renderConflict();status("当前标签页同步已停止；记住的口令未删除。");
+ });
+ $("studySyncForget").addEventListener("click",()=>{
+  enabled=false;paused=false;conflicts=null;clearTimeout(timer);
+  sessionStorage.removeItem(SESSION_TOKEN_KEY);localStorage.removeItem(DEVICE_TOKEN_KEY);
+  token="";$("studySyncToken").value="";$("studySyncRemember").checked=false;
+  if(deepSeekToken)deepSeekToken.value="";
+  renderConflict();status("已清除这台设备保存的访问口令。");
  });
  $("studySyncLocalBackup").addEventListener("click",()=>{if(conflicts)download("local",conflicts.local)});
  $("studySyncRemoteBackup").addEventListener("click",()=>{if(conflicts)download("cloud",conflicts.remote)});
