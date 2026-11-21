@@ -96,7 +96,7 @@ try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(s&&typeof s
 let openWeek=Number((state.selected||'1-1').split('-')[0])||1;
 let tab=['day','week','dashboard','resources','notebook'].includes(state.tab)?state.tab:'day';
 let search='';let aiMode='explain';let aiOnline=false;let aiBusy=false;let aiText='';let lastUsage=null;
-function persist(){try{state.tab=tab;localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch(e){alert('本地空间不足或浏览器阻止存储。请先备份学习记录，再清理空间。')}}
+function persist(){try{state.tab=tab;localStorage.setItem(STORAGE_KEY,JSON.stringify(state));window.StudySync?.changed()}catch(e){alert('本地空间不足或浏览器阻止存储。请先备份学习记录，再清理空间。')}}
 function getDayId(w,d){return `${w}-${d}`}
 function getDayMeta(id=state.selected){const [w,d]=String(id).split('-').map(Number);const week=CURRICULUM.weeks[w-1];return week?{w,d,week,day:week.days[d-1]}:null}
 function rec(id=state.selected){return state.days[id]||{steps:{},feyn:{},notes:'',summary:'',blockers:'',next:'',feedback:'',confidence:0,minutes:0,chat:[]}}
@@ -357,6 +357,39 @@ if(location.hash==='#notebook'){tab='notebook';persist()}
 render();detectAi();
 })();
 
+</script>
+<script src="./study-sync.js"></script>
+<script>
+window.StudySync.start({
+ scope:"main",
+ get(){
+  const r=JSON.parse(localStorage.getItem("asos_study_workspace_2026_v1")||"{}");
+  return {
+   startDate:r.startDate||"2026-11-23",selected:r.selected||"1-1",
+   days:r.days||{},weekly:r.weekly||{},
+   settings:{model:r.settings?.model||"deepseek-flash",
+    notebookLinks:r.settings?.notebookLinks||{weeks:{},days:{}}}
+  };
+ },
+ hasWork(r){
+  return Object.keys(r.days||{}).length>0||Object.keys(r.weekly||{}).length>0||
+   Object.keys(r.settings?.notebookLinks?.weeks||{}).length>0||
+   Object.keys(r.settings?.notebookLinks?.days||{}).length>0;
+ },
+ apply(value){
+  const key="asos_study_workspace_2026_v1";
+  const r=JSON.parse(localStorage.getItem(key)||"{}");
+  const incoming={...r,...value,tab:r.tab||"day",
+    settings:{...(r.settings||{}),...(value.settings||{})}};
+  localStorage.setItem(key,JSON.stringify(incoming));
+  setTimeout(()=>location.reload(),60);
+ },
+ onWorker(url){
+  const input=document.getElementById("workerUrl");
+  if(input)input.value=url;
+  document.getElementById("saveWorkerConfig")?.click();
+ }
+});
 </script>
 </body>
 </html>
