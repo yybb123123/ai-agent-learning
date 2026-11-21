@@ -27,21 +27,22 @@ function same(a,b){
  }
  return false;
 }
-function merge3(base,local,remote,path,issues){
+function merge3(base,local,remote,path,issues,preference){
  if(same(local,remote))return local;
  if(same(local,base))return remote;
  if(same(remote,base))return local;
  if(plain(local)&&plain(remote)&&(plain(base)||base===MISSING)){
   const out={},keys=new Set([...Object.keys(base===MISSING?{}:base),...Object.keys(local),...Object.keys(remote)]);
   for(const k of keys){
+   if(["__proto__","prototype","constructor"].includes(k))continue;
    const pick=obj=>obj!==MISSING&&Object.prototype.hasOwnProperty.call(obj,k)?obj[k]:MISSING;
-   const v=merge3(pick(base),pick(local),pick(remote),path?path+"."+k:k,issues);
+   const v=merge3(pick(base),pick(local),pick(remote),path?path+"."+k:k,issues,preference);
    if(v!==MISSING)out[k]=v;
   }
   return out;
  }
  issues.push(path||"(root)");
- return local;
+ return preference==="cloud"?remote:local;
 }
 function clone(o){return JSON.parse(JSON.stringify(o));}
 function readBase(){
@@ -105,30 +106,34 @@ function stopConflict(paths, local,remote,rev){
 async function resolveConflict(preference){
  if(!conflicts||busy)return;
  const snapshot=conflicts;
- const warning=preference==="local"?"本机":"云端";
  download("pre_resolution_local",snapshot.local);
  download("pre_resolution_cloud",snapshot.remote);
- if(!confirm("已经下载两份备份。确定要以【"+warning+"】版本解决冲突字段吗？未冲突的字段仍会合并。"))return;
- paused=false;conflicts=null;renderConflict();
- // Treat preferred fields as conflict winner, but re-check server revision.
+ const warning=preference==="local"?"本机":"云端";
+ if(!confirm("已提供本机和云端两份 JSON 备份下载。将以【"+warning+"】版本解决冲突字段，同时保留未冲突的修改。确定继续？"))return;
+ busy=true;status("正在安全解决冲突…");
  try{
   const latest=await api("GET","sync/"+cfg.scope);
+  const here=clone(cfg.get());
+  const prior=readBase().data;
   const errors=[];
-  const here=cfg.get();
-  const chooseMerge=preference==="local"?merge3(latest.data||{},here,latest.data||{}, "",errors):merge3(here,here,latest.data||{},"",errors);
-  // Deliberately choose whole preferred document if true conflict remains.
-  // The two backup files preserve both originals and the other device data.
-  const target=preference==="local"?here:(latest.data||{});
-  if(preference==="local"){
+  const target=merge3(prior,here,latest.data||{},"",errors,preference);
+  // The original pages continue to hold a local copy, and both complete
+  // conflict snapshots are explicitly downloadable before resolution.
+  let revision=latest.revision;
+  if(!same(target,latest.data||{})){
    const saved=await api("PUT","sync/"+cfg.scope,{baseRevision:latest.revision,data:target});
-   if(!saveBase(saved.revision,target))return;
-  }else{
-   if(!backupLocal(here))return;
-   cfg.apply(clone(target));saveBase(latest.revision,target);
+   revision=saved.revision;
   }
-  status("冲突已按"+warning+"版本处理；请确认笔记内容。","ok");
+  if(!saveBase(revision,target))return;
+  if(!same(here,target)){
+   if(!backupLocal(here))return;
+   cfg.apply(clone(target));
+  }
+  conflicts=null;paused=false;renderConflict();
   lastChecked=Date.now();
- }catch(err){status("冲突处理失败："+err.message,"error");paused=true}
+  status("已合并未冲突的字段；冲突按"+warning+"版本处理。","ok");
+ }catch(err){status("冲突处理失败："+err.message+"；请保留两份备份。","error");paused=true}
+ finally{busy=false}
 }
 async function sync(manual=false){
  if(!enabled||busy||paused||!cfg)return;
@@ -142,6 +147,14 @@ async function sync(manual=false){
    const local=clone(cfg.get());
    if(!plain(local))throw new Error("本地记录格式异常。");
    const prior=readBase();
+   // First connection on a new browser with no study content: download the
+   // cloud version rather than treating default selected-day fields as edits.
+   if(prior.revision===0 && server.data && typeof cfg.hasWork==="function" && !cfg.hasWork(local)){
+    if(!same(local,lastRemote)&&!backupLocal(local))return;
+    if(!saveBase(server.revision,lastRemote))return;
+    if(!same(local,lastRemote))cfg.apply(clone(lastRemote));
+    lastChecked=Date.now();status("已从云端恢复学习进度。","ok");return;
+   }
    // If the device previously synced a different cloud revision, merge the
    // local edits against the last acknowledged base.
    const issues=[];
