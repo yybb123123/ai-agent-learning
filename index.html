@@ -32,6 +32,7 @@
       <button data-tab="dashboard">16 周总览</button>
       <button data-tab="resources">学习资料库</button>
       <button data-tab="notebook">NotebookLM 讨论</button>
+      <a href="./anthropic-courses.html" style="display:inline-flex;align-items:center;padding:7px 11px;border:1px solid #93bbd3;background:#eaf2f8;border-radius:6px;font-size:13px;font-weight:650">Anthropic 官方 7 课程 · 16 周 ↗</a>
       <a href="./exam-prep.html" style="display:inline-flex;align-items:center;padding:7px 11px;border:1px solid #a3c2d8;background:#eaf2f8;border-radius:6px;font-size:13px;font-weight:650">Anthropic 认证备考（21 天）↗</a>
     </nav>
     <div class="notice"><strong>新增：Anthropic Architect – Foundations 备考资料。</strong> <a href="./exam-prep.html">打开 21 天备考计划、官方考试指南与每日费曼笔记 →</a>（主课程 112 天保留原样）</div><div id="content"></div>
@@ -193,11 +194,19 @@ function renderNotebookHub(){
  <div class="resource"><div><a href="https://developers.google.com/notebook/docs/roadmap" target="_blank" rel="noopener noreferrer">Notebook API 后续路线图</a><small>检索笔记本知识与生成 Studio artifacts 仍在规划中</small></div></div></section>`;
 }
 
+function officialCourseDay(w,d){
+ const pos=[2,4,6].indexOf(d);
+ if(pos<0)return '';
+ const n=(w-1)*3+pos+1;
+ return '<div class="notice"><strong>官方课程并行学习：</strong>第 '+w+' 周 / '+DAY_LABELS[d-1]+' 对应 Anthropic 七门课程第 '+n+' 次学习。 <a href="./anthropic-courses.html#s-'+n+'">打开今日课程内容、原始链接和费曼练习 →</a></div>';
+}
+
 function renderDay(){const info=getDayMeta();if(!info)return;const {w,d,week,day}=info;const r=rec();const status=completed(state.selected)?'已完成':doneCount(state.selected)?'进行中':'待开始';const date=dateFor(w,d);$('#content').innerHTML=`
   <div class="eyebrow">第 ${w} 周 · ${DAY_LABELS[d-1]} · ${h(day.mode)} · ${h(formatDate(date))}<\/div>
   <h2 style="margin-top:5px">D${String((w-1)*7+d).padStart(3,'0')}｜${h(day.title)}<\/h2>
   <div class="chips"><span class="chip">${h(week.module)}<\/span>${week.extras.map(x=>`<span class="chip">${h(x)}<\/span>`).join('')}<span class="chip">${status}<\/span><\/div>
   <p class="lead"><strong>本周总目标：<\/strong>${h(week.objective)}<\/p>
+  ${officialCourseDay(w,d)}
   <section class="section"><h3>01 · 今天学什么？为什么学？<\/h3>
     <div class="analysis"><p><strong>知识点：<\/strong>${h(day.learn)}<\/p><p><strong>今天为什么重要：<\/strong>${h(week.objective)}。<\/p><p><strong>容易犯的错误：<\/strong>${h(week.risk)}<\/p><p><strong>与产品的关联：<\/strong>将今天的知识用于 AfterSchool AI OS 的 Staff Training & Compliance Tracker，而不是为了演示而增加无效 Agent。<\/p><\/div>
   <\/section>
@@ -344,6 +353,7 @@ async function requestAi(weekly=false,sendWeekly=false){
 $('#askAi').addEventListener('click',()=>requestAi(tab==='week'));
 $('#toSummary').addEventListener('click',()=>{if(!aiText.trim()){alert('没有可插入的 AI 回复');return}const r=rec();patch({summary:[r.summary||'',`【AI 辅导反馈 · ${new Date().toLocaleString('zh-CN')}】\n${aiText}`].filter(Boolean).join('\n\n')});if(tab==='day')renderDay();renderSummary();renderNav();alert('已追加到今日总结，请检查并纠正其中可能的 AI 错误。')});
 $('#clearAi').addEventListener('click',()=>{if(!confirm('仅清空今天的 AI 对话历史？费曼笔记和学习总结不会删除。'))return;patch({chat:[]});aiText='';$('#aiAnswer').textContent='已清空本日历史。';renderAiHistory()});
+if(location.hash==='#notebook'){tab='notebook';persist()}
 render();detectAi();
 })();
 
