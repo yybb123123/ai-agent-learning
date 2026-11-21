@@ -52,7 +52,7 @@ const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const original=()=>({selected:1,records:{}});
 let state=original();
 try{const obj=JSON.parse(localStorage.getItem(KEY)||'null');if(obj&&typeof obj.records==='object')state={...original(),...obj}}catch(_){}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(_){alert('保存失败，请先备份课程笔记。')}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));window.StudySync?.changed()}catch(_){alert('保存失败，请先备份课程笔记。')}};
 const courseFor=id=>COURSES.find(c=>c.id===id);
 const current=()=>SESSIONS[(state.selected||1)-1]||SESSIONS[0];
 const rec=id=>state.records[String(id)]||{};
@@ -127,4 +127,21 @@ $('fileInput').addEventListener('change',async e=>{
 });
 const fromHash=Number((location.hash.match(/^#s-(\d+)$/)||[])[1]);if(fromHash>=1&&fromHash<=48)state.selected=fromHash;
 render();
-</script></body></html>
+</script>
+<script src="./study-sync.js"></script>
+<script>
+window.StudySync.start({
+ scope:"courses",
+ get(){
+  const r=JSON.parse(localStorage.getItem("anthropic_7_courses_track_v1")||"{}");
+  return {selected:r.selected||1,records:r.records||{}};
+ },
+ hasWork(r){return Object.keys(r.records||{}).length>0},
+ apply(value){
+  const key="anthropic_7_courses_track_v1",r=JSON.parse(localStorage.getItem(key)||"{}");
+  localStorage.setItem(key,JSON.stringify({...r,...value}));
+  setTimeout(()=>location.reload(),60);
+ }
+});
+</script>
+</body></html>
