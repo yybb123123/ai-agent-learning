@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anthropic 官方七门课程｜16 周学习计划</title><style>
+:root{--bg:#f7f8fa;--card:#fff;--ink:#1c2b3b;--muted:#536476;--line:#dce3eb;--blue:#1d5c86;--pale:#eaf3f8;--good:#247459}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+a{color:#155b85;text-decoration:none}a:hover{text-decoration:underline}
+button,input,textarea,select{font:inherit}button{background:white;border:1px solid #c8d3df;border-radius:7px;padding:8px 11px;cursor:pointer;color:var(--ink)}
+button:hover{background:#edf4f8}button.active,button.primary{background:var(--blue);border-color:var(--blue);color:white}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #a0d4fc;outline-offset:2px}
+header{background:white;border-bottom:1px solid var(--line);padding:16px max(15px,calc((100vw - 1160px)/2))}
+header h1{font-size:22px;line-height:1.3;margin:4px 0}h2{font-size:19px}h3{font-size:15px}p{margin:7px 0}
+.links{display:flex;gap:13px;flex-wrap:wrap;font-size:13px}.sub{color:var(--muted);font-size:13px}
+.wrap{max-width:1160px;margin:auto;padding:12px}.cols{display:grid;grid-template-columns:275px minmax(0,1fr);gap:12px;align-items:start}
+.panel{background:white;border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}.sidebar{position:sticky;top:10px;max-height:94vh;overflow:auto}
+.small{font-size:12px;color:var(--muted)}.notice{border:1px solid #e8d6ab;background:#fff9e9;padding:10px 12px;border-radius:7px;margin:12px 0;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px}.course{border:1px solid var(--line);background:#fbfcfd;border-radius:8px;padding:13px}
+.tag{font-size:11px;border:1px solid #bad1e1;background:#ecf3f8;color:#2e5874;border-radius:5px;padding:2px 6px;display:inline-block}
+.course strong{display:block;font-size:14px;margin:6px 0 3px}.course ul{margin:8px 0;padding-left:18px;font-size:12px;color:var(--muted)}
+.course li{margin:3px 0}.section{padding-top:18px;margin-top:18px;border-top:1px solid var(--line)}
+.daybutton{width:100%;display:block;text-align:left;font-size:12px;padding:8px;margin:5px 0}.weekline{font-weight:650;font-size:12px;color:#3b617a;margin:13px 0 5px}
+.progress{background:#e1e9f1;height:9px;border-radius:10px;overflow:hidden}.fill{height:100%;background:#287b9e}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.space{margin:10px 0}
+.resource{padding:9px;border:1px solid var(--line);border-radius:6px;background:#f8fafc}
+.study{background:#f2f7fa;border-left:4px solid #79a9ca;padding:14px;border-radius:4px}
+.study p+p{margin-top:10px}.weekdays{display:flex;gap:7px;flex-wrap:wrap}
+label.field{display:block;margin:13px 0 6px;font-size:13px;font-weight:650}
+textarea,input[type=number]{display:block;width:100%;border:1px solid #bbc8d4;padding:10px;border-radius:6px;color:var(--ink)}
+textarea{resize:vertical;min-height:96px}input[type=number]{max-width:170px}
+.stat{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0}.dash{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.big{font-size:24px;font-weight:700;color:#145477}
+@media(max-width:760px){header h1{font-size:19px}.wrap{padding:6px}.cols{grid-template-columns:1fr}.sidebar{position:static;max-height:260px}.panel{padding:13px}.grid{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><div class="links"><a href="./">← 112 天主课程</a><a href="./exam-prep.html">CCAR-F 21 天备考</a><a href="https://academy.claude.com/courses" target="_blank" rel="noopener noreferrer">Anthropic 官方课程目录 ↗</a></div>
+<h1>Anthropic 官方推荐的 7 门课程</h1><p class="sub">16 周并行计划 · 每周二、四、六各 1 次 · 48 个学习任务 · 原课程合计约 34 小时</p></header>
+<div class="wrap">
+<div class="notice">这是依据 Anthropic Academy 官方课程目录整理的<strong>原创中文学习路线</strong>，不复制官方课程全文。七门课程的学习入口免费，但 AWS、Google Cloud、Claude API 等实操可能需要账户、授权或产生调用费用。默认先阅读和用合成资料设计，不创建付费云资源。每个学习日与你原来的 112 天主计划同步编号，主计划本身不被替换。</div>
+<div class="cols"><aside class="panel sidebar"><div id="stats"></div><div id="navigation"></div></aside>
+<main class="panel">
+<section><h2 style="margin-top:0">七门课程总览</h2><div id="catalog" class="grid"></div></section>
+<section class="section"><h2>本周学习安排</h2><p class="sub" id="dateInfo"></p><div id="weekStrip" class="weekdays"></div><p class="small">预设周二、周四和周六学习。日期自动读取主课程的开始日期；修改主课程起始日期后，本页日程也会一起变化。</p></section>
+<section class="section"><div id="detail"></div></section>
+<section class="section"><h3>学习备份与恢复</h3><p class="small">课程完成记录、笔记与实践证据仅保存在这个浏览器的本地存储。这里的 JSON 备份与主课程备份独立，换设备时需要分别导出与导入。不会把私人笔记写入公开 GitHub。</p>
+<div class="row"><button id="export">导出七课程笔记 JSON</button><button id="import">导入七课程笔记 JSON</button><input type="file" accept="application/json,.json" id="fileInput" hidden></div></section>
+</main></div></div>
+<script>
+const COURSES=[{"id":"claude101","title":"Claude 101","hours":2.5,"lessons":13,"quizzes":1,"level":"基础","url":"https://academy.claude.com/courses/claude-101","modules":["认识 Claude、首次对话与改善输出","Projects、Artifacts 与 Skills","Connectors、Enterprise Search、Research 与角色案例"],"note":"部分进阶产品功能可能需要付费订阅。"},{"id":"fluency","title":"AI Fluency: Framework & Foundations","hours":4,"lessons":14,"quizzes":1,"level":"基础","url":"https://academy.claude.com/courses/ai-fluency-framework-foundations","modules":["4D Framework：Delegation / Description / Discernment / Diligence","Generative AI 能力、限制与负责任协作","Automation / Augmentation / Agency 的任务选择"],"note":"以自己的合成案例做 4D 练习，不输入真实客户资料。"},{"id":"api","title":"Building with the Claude API","hours":9,"lessons":67,"quizzes":8,"level":"重点必学","url":"https://academy.claude.com/courses/building-with-the-claude-api","modules":["API 访问、消息与多轮对话、Structured Outputs","Prompt Engineering 与 Evaluations","Tool Use、Tool Schema、多步交互","RAG、Embeddings、BM25 与检索质量","Model Context Protocol、Claude Apps","Agents、Parallelization、Chaining、Routing"],"note":"部分动手实验需要 Anthropic API Key，可能按 Token 收费；可先用模拟数据与本地 Mock。"},{"id":"mcp","title":"Introduction to Model Context Protocol","hours":1,"lessons":10,"quizzes":1,"level":"重点必学","url":"https://academy.claude.com/courses/introduction-to-model-context-protocol","modules":["Client / Server 架构与协议消息","Python SDK、Tools、MCP Inspector","Resources、Prompts 与客户端交互"],"note":"课程后段聊天应用示例可能需要 Anthropic API Key。"},{"id":"code","title":"Claude Code in Action","hours":1,"lessons":9,"quizzes":1,"level":"重点必学","url":"https://academy.claude.com/courses/claude-code-in-action","modules":["长任务 Steer、Plan Mode、Compaction","CLAUDE.md、Skills、Permission Modes、Hooks","Scheduled Tasks、Headless、GitHub Actions","验证无人值守运行与 Plugins"],"note":"课程学习免费；实操产品功能取决于 Claude Code 实际使用权限和套餐。"},{"id":"bedrock","title":"Claude with Amazon Bedrock","hours":8,"lessons":65,"quizzes":8,"level":"云平台专项","url":"https://academy.claude.com/courses/claude-with-amazon-bedrock","modules":["AWS Bedrock API、身份认证、对话与流式响应","Prompt Evaluation、JSON Tool Use","RAG、Embeddings、BM25、Reranking","MCP、Claude Code、Agents 与生产模式"],"note":"完整上机可能需要 AWS 账号和 Bedrock 权限；本计划不要求开通收费资源。"},{"id":"gcp","title":"Claude on Google Cloud","hours":8.5,"lessons":66,"quizzes":9,"level":"云平台专项","url":"https://academy.claude.com/courses/claude-with-google-cloud-s-vertex-ai","modules":["Google Cloud Agent Platform 与 Claude 访问","Messages、Streaming、Prompt Eval、Tool Use","RAG、BM25、Reranking 与来源治理","MCP、Agents、Routing、Chaining 与生产模式"],"note":"完整上机可能需要 Google Cloud 访问权限，课程部分示例还需要 Claude API Key；本计划不要求开通收费资源。"}];
+const SESSIONS=[{"id":1,"week":1,"day":2,"course":"claude101","title":"认识 Claude 与首次对话","learn":"阅读开场和 Prompt 改进章节","practice":"比较模糊与精确家长通知 Prompt","feynman":"为什么任务边界比字数重要？","plannedMin":50},{"id":2,"week":1,"day":4,"course":"claude101","title":"Projects、Artifacts、Skills","learn":"学习可复用上下文和作品功能","practice":"为虚构学校设计一个项目结构","feynman":"何时应复用项目资料而非复制对话？","plannedMin":50},{"id":3,"week":1,"day":6,"course":"claude101","title":"连接资料、应用场景与测验","learn":"阅读 Connectors、Research、角色案例并测验","practice":"列出能力与权限边界","feynman":"为什么连接资料不等于可以随意访问？","plannedMin":50},{"id":4,"week":2,"day":2,"course":"fluency","title":"4D 与生成式 AI 边界","learn":"学习四个 D、模型限制与 Automation/Augmentation/Agency","practice":"分类十种行政任务","feynman":"为什么不应把全部工作委派 AI？","plannedMin":80},{"id":5,"week":2,"day":4,"course":"fluency","title":"Delegation 与 Description","learn":"学习任务委派及产物、过程、质量描述","practice":"写一份可验收的模拟通知任务书","feynman":"好的交付标准应该写多细？","plannedMin":80},{"id":6,"week":2,"day":6,"course":"fluency","title":"Discernment、Diligence 与测验","learn":"学习检验与透明责任，完成课程测验","practice":"识别三种 AI 编造的信息","feynman":"哪些责任不可转交给 AI？","plannedMin":80},{"id":7,"week":3,"day":2,"course":"api","title":"API 身份认证与请求","learn":"学习 API Key、请求响应格式与安全策略","practice":"画出浏览器—后端—API 数据流","feynman":"为什么公开网页不能储存密钥？","plannedMin":45},{"id":8,"week":3,"day":4,"course":"api","title":"多轮消息与 System Prompt","learn":"学习角色、历史与上下文窗口","practice":"构建三轮苏格拉底对话的模拟 JSON","feynman":"为什么消息历史不能无限堆积？","plannedMin":45},{"id":9,"week":3,"day":6,"course":"api","title":"Streaming 与 Structured Data","learn":"学习参数、流式输出、JSON Schema","practice":"设计培训证书提取的字段校验","feynman":"合法 JSON 就代表信息真实吗？","plannedMin":45},{"id":10,"week":4,"day":2,"course":"api","title":"Prompt 评测与测试集","learn":"学习如何构造基准样本及检查标准","practice":"准备十条模拟培训记录","feynman":"没有对照测试为什么难以判断进步？","plannedMin":45},{"id":11,"week":4,"day":4,"course":"api","title":"模型评分与代码评分","learn":"比较 Model-based Grading 与确定性代码检查","practice":"用规则校验日期和必填字段","feynman":"哪些判断必须依赖代码而非模型？","plannedMin":45},{"id":12,"week":4,"day":6,"course":"api","title":"XML、Few-shot 与明确指令","learn":"学习结构化 Prompt 与有效示例","practice":"用相同数据对比两种提示词","feynman":"更多示例一定提高准确率吗？","plannedMin":45},{"id":13,"week":5,"day":2,"course":"api","title":"Tool Schema 与选择规则","learn":"学习工具描述、参数和调用约束","practice":"写一个只读 Staff Training 查询工具规范","feynman":"为什么模糊的工具说明会提高误调用？","plannedMin":45},{"id":14,"week":5,"day":4,"course":"api","title":"Tool Loop 与多轮工具结果","learn":"学习 tool_use、tool_result 和异常处理","practice":"画查询—验证—生成草稿—人工审批流程","feynman":"什么情况下该停止调用工具？","plannedMin":45},{"id":15,"week":5,"day":6,"course":"api","title":"自定义/内置工具与安全","learn":"比较工具类型与错误降级","practice":"设计越权和超时响应策略","feynman":"Prompt 能代替后端权限校验吗？","plannedMin":45},{"id":16,"week":6,"day":2,"course":"api","title":"RAG、Embeddings、BM25","learn":"学习分块、检索与文档出处","practice":"建立公开规范的检索字段草图","feynman":"检索命中就等于真实结论吗？","plannedMin":45},{"id":17,"week":6,"day":4,"course":"api","title":"MCP、Claude Apps 与集成","learn":"学习 MCP 原语及应用连接方式","practice":"把模拟 Webhook 画成 MCP Tool","feynman":"什么时候普通 API 已经足够？","plannedMin":45},{"id":18,"week":6,"day":6,"course":"api","title":"Agents/Workflows 与测验","learn":"学习 Routing、Chaining、Parallelization 并完成课程测验","practice":"比较规则、n8n、Agent 三种方案","feynman":"为何单 Agent 有时还不如固定工作流？","plannedMin":45},{"id":19,"week":7,"day":2,"course":"mcp","title":"MCP Client/Server 与协议","learn":"学习请求响应和 Tools/Resources/Prompts","practice":"画 MCP 数据流","feynman":"只读资料应做 Tool 还是 Resource？","plannedMin":50},{"id":20,"week":7,"day":4,"course":"mcp","title":"Python SDK、Tools 与 Inspector","learn":"学习示例工具定义和调试界面","practice":"设计只读工具的测试输入输出","feynman":"怎样证明工具不是仅在演示时可用？","plannedMin":50},{"id":21,"week":7,"day":6,"course":"mcp","title":"Resources、Prompts 与测验","learn":"学习模板资源、提示词与客户端行为","practice":"整理三种 MCP 原语对照表并完成测验","feynman":"MCP 是否自动提供用户鉴权？","plannedMin":50},{"id":22,"week":8,"day":2,"course":"code","title":"Plan、Compaction 与纠偏","learn":"学习长任务计划和上下文压缩","practice":"写一次代码修改的验收计划","feynman":"为什么要先规划再让 Agent 改代码？","plannedMin":50},{"id":23,"week":8,"day":4,"course":"code","title":"CLAUDE.md、Skills 与 Hooks","learn":"学习权限模式、规则及运行钩子","practice":"为玩具仓库设计项目规则与测试 Hook","feynman":"哪种权限无法仅由提示词保证？","plannedMin":50},{"id":24,"week":8,"day":6,"course":"code","title":"Headless、Actions、Review 与测验","learn":"学习自动化和无人值守验证","practice":"整理 Code Review 验收清单并完成测验","feynman":"自动运行完成与被验证通过有何不同？","plannedMin":50},{"id":25,"week":9,"day":2,"course":"bedrock","title":"Bedrock 部署与 IAM","learn":"学习 AWS Bedrock 模型访问、成本及权限","practice":"只画 AWS 认证和调用架构","feynman":"云账户权限与模型调用权限是同一层吗？","plannedMin":55},{"id":26,"week":9,"day":4,"course":"bedrock","title":"Messages、System、Streaming","learn":"学习 AWS 版对话和输出控制","practice":"比较 Anthropic API 与 Bedrock 请求路径","feynman":"部署平台如何影响代码和账单？","plannedMin":55},{"id":27,"week":9,"day":6,"course":"bedrock","title":"Prompt Eval 与基本测验","learn":"学习数据集与模型/代码评分","practice":"评测模拟证书提取结果","feynman":"同一 Prompt 跨平台为何仍需测试？","plannedMin":55},{"id":28,"week":10,"day":2,"course":"bedrock","title":"Tool Schema 与结果回传","learn":"学习工具函数、JSON Schema 和调用回路","practice":"写一个只读证书查询 Tool 规格","feynman":"工具参数不合法时应该如何处理？","plannedMin":55},{"id":29,"week":10,"day":4,"course":"bedrock","title":"RAG、Chunking 与 Embeddings","learn":"学习检索数据处理和索引","practice":"为五份公开文档规划检索流水线","feynman":"哪些资料不应该进入云端？","plannedMin":55},{"id":30,"week":10,"day":6,"course":"bedrock","title":"BM25、Reranking、Contextual Retrieval","learn":"学习混合搜索与结果重排序","practice":"设计三种检索效果对比","feynman":"什么时候关键词搜索更合适？","plannedMin":55},{"id":31,"week":11,"day":2,"course":"bedrock","title":"AWS 中的 MCP 集成","learn":"学习工具、资源、提示词与授权","practice":"画客户侧 MCP Server 权限边界","feynman":"MCP Server 怎样阻止越权？","plannedMin":55},{"id":32,"week":11,"day":4,"course":"bedrock","title":"Claude Code、Agent 与调试","learn":"学习代理工作流与恢复逻辑","practice":"给培训提醒增加人工审核和日志设计","feynman":"为什么生产系统必须能够恢复？","plannedMin":55},{"id":33,"week":11,"day":6,"course":"bedrock","title":"Bedrock 综合测验与成本判断","learn":"完成课程测验、复盘平台选择","practice":"写不使用 AWS 的成本与维护权衡","feynman":"学过某平台是否就要购买服务？","plannedMin":55},{"id":34,"week":12,"day":2,"course":"gcp","title":"Google Cloud Claude 访问与身份","learn":"学习 Agent Platform 的平台权限和调用","practice":"绘制只读部署角色权限矩阵","feynman":"云权限与 API Key 有何不同？","plannedMin":55},{"id":35,"week":12,"day":4,"course":"gcp","title":"Messages、Streaming 与 System","learn":"学习多轮对话与 Google 平台参数","practice":"对比两种平台请求结构","feynman":"同一个模型跨云部署有什么运营差异？","plannedMin":55},{"id":36,"week":12,"day":6,"course":"gcp","title":"Prompt Eval 与 Structured Data","learn":"学习测试集与结构化输出校验","practice":"设计十条合成证书样本评测","feynman":"为什么不同环境的结果可能不同？","plannedMin":55},{"id":37,"week":13,"day":2,"course":"gcp","title":"Tool Schema 和多步交互","learn":"学习工具定义、响应和重试","practice":"测试模拟工具的错误输出","feynman":"无限重试会带来什么成本与风险？","plannedMin":55},{"id":38,"week":13,"day":4,"course":"gcp","title":"RAG、文档版本和证据","learn":"学习分块、嵌入、检索与来源","practice":"画公开法规库和客户私有数据的边界","feynman":"为什么法规来源必须含日期？","plannedMin":55},{"id":39,"week":13,"day":6,"course":"gcp","title":"BM25、Reranking 与准确性","learn":"学习结果排序与搜索质量验证","practice":"对五个问题评价检索相关性","feynman":"检索高分与事实正确相同吗？","plannedMin":55},{"id":40,"week":14,"day":2,"course":"gcp","title":"Google Cloud 上的 MCP","learn":"学习 Tools、Resources、Prompts 集成","practice":"对比不同平台认证责任","feynman":"MCP 解决的是协议还是权限？","plannedMin":55},{"id":41,"week":14,"day":4,"course":"gcp","title":"Agents、Routing 与 Chaining","learn":"学习并行、串行、分流等工作流","practice":"绘制模拟合规提醒的无付费方案","feynman":"哪些条件应交给确定性规则？","plannedMin":55},{"id":42,"week":14,"day":6,"course":"gcp","title":"Google Cloud 测验及平台比较","learn":"完成课程测验、比较 API/AWS/GCP","practice":"制作成本、隐私、安全比较表","feynman":"什么条件满足后才值得切换云平台？","plannedMin":55},{"id":43,"week":15,"day":2,"course":"review","title":"复习 Agentic Architecture 与 MCP","learn":"对照 CCAR-F D1/D2 复盘 7 门课程","practice":"写出单 Agent 与多 Agent 架构答辩","feynman":"什么时候多 Agent 增加了问题？","plannedMin":50},{"id":44,"week":15,"day":4,"course":"review","title":"复习 Claude Code 与结构化输出","learn":"对照 D3/D4 复盘配置、Hooks、Schema","practice":"修正三项模拟错误并记录证据","feynman":"哪些错误不能单靠 Prompt 修复？","plannedMin":50},{"id":45,"week":15,"day":6,"course":"review","title":"复习上下文与薄弱知识点","learn":"对照 D5 复盘来源、升级、可靠性","practice":"制作五大领域薄弱点清单","feynman":"为什么更多上下文不一定更可靠？","plannedMin":50},{"id":46,"week":16,"day":2,"course":"review","title":"综合案例：Staff Training Tracker","learn":"综合七课知识完成方案选型","practice":"画模拟培训记录到通知审核的端到端流程","feynman":"哪些步骤必须保留人工审批？","plannedMin":50},{"id":47,"week":16,"day":4,"course":"review","title":"官方示例题与答案辨析","learn":"独立完成官方考试指南示例题","practice":"记录答案、理由与未掌握的领域","feynman":"如何区分理解原理与记住题目？","plannedMin":50},{"id":48,"week":16,"day":6,"course":"review","title":"成果总结与下一阶段计划","learn":"核对课程测验和结业记录及认证资格","practice":"产出 16 周课程学习总结、下一步路线","feynman":"认证、实践和商业成效有何区别？","plannedMin":50}];
+const KEY='anthropic_7_courses_track_v1',MASTER='asos_study_workspace_2026_v1';
+const $=id=>document.getElementById(id);
+const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const original=()=>({selected:1,records:{}});
+let state=original();
+try{const obj=JSON.parse(localStorage.getItem(KEY)||'null');if(obj&&typeof obj.records==='object')state={...original(),...obj}}catch(_){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(_){alert('保存失败，请先备份课程笔记。')}};
+const courseFor=id=>COURSES.find(c=>c.id===id);
+const current=()=>SESSIONS[(state.selected||1)-1]||SESSIONS[0];
+const rec=id=>state.records[String(id)]||{};
+const getMasterStart=()=>{try{return JSON.parse(localStorage.getItem(MASTER)||'{}').startDate||'2026-11-23'}catch(_){return '2026-11-23'}};
+const dateFor=(week,day)=>{const d=new Date(getMasterStart()+'T12:00:00Z');if(Number.isNaN(d.valueOf()))return '';d.setUTCDate(d.getUTCDate()+(week-1)*7+day-1);return d.toISOString().slice(0,10)};
+const finished=id=>!!rec(id).done;
+function renderStats(){
+ const completed=SESSIONS.filter(s=>finished(s.id)).length,percent=completed/48*100;
+ $('stats').innerHTML='<div class="stat"><b>课程进度</b><b>'+completed+' / 48</b></div><div class="progress"><div class="fill" style="width:'+percent.toFixed(1)+'%"></div></div><p class="small">官方课程本体合计约34小时。学习总结额外6次，实际学习时长可自行调整。</p>';
+}
+function renderNav(){
+ let weeks='';
+ for(let w=1;w<=16;w++){
+  const days=SESSIONS.filter(s=>s.week===w);
+  weeks+='<div class="weekline">W'+String(w).padStart(2,'0')+' · '+(w<=14?((courseFor(days[0].course)||{}).title||''):'认证复习与实践')+'</div>';
+  for(const s of days)weeks+='<button class="daybutton '+(s.id===current().id?'active':'')+'" data-go="'+s.id+'">'+(finished(s.id)?'✓ ':'○ ')+dateFor(s.week,s.day)+' · '+h(s.title)+'</button>';
+ }
+ $('navigation').innerHTML=weeks;
+ const b=$('navigation').querySelector('.active');if(b&&b.offsetTop>180)$('navigation').parentElement.scrollTop=b.offsetTop-170;
+}
+function renderCatalog(){
+ $('catalog').innerHTML=COURSES.map(c=>{
+ const relevant=SESSIONS.filter(s=>s.course===c.id),done=relevant.filter(s=>finished(s.id)).length;
+ const summary=c.modules.map(x=>'<li>'+h(x)+'</li>').join('');
+ return '<div class="course"><span class="tag">'+h(c.level)+'</span><strong>'+h(c.title)+'</strong><div class="small">'+c.lessons+' 节课 · '+c.quizzes+' 测验 · 约 '+c.hours+' 小时 · 安排 '+relevant.length+' 次</div><ul>'+summary+'</ul><div class="stat"><small>'+done+'/'+relevant.length+' 已完成</small><a href="'+h(c.url)+'" target="_blank" rel="noopener noreferrer">进入官方课程 ↗</a></div></div>';
+ }).join('');
+}
+function renderWeek(){
+ const s=current(),w=s.week;
+ $('dateInfo').textContent='第 '+w+' 周 · '+dateFor(w,2)+' / '+dateFor(w,4)+' / '+dateFor(w,6)+'（自动匹配主课程的开始日期 '+getMasterStart()+'）';
+ $('weekStrip').innerHTML=SESSIONS.filter(x=>x.week===w).map(x=>'<button data-go="'+x.id+'" class="'+(current().id===x.id?'primary':'')+'">'+(finished(x.id)?'✓ ':'')+'周'+({2:'二',4:'四',6:'六'}[x.day])+' · 第'+x.id+'次</button>').join('');
+}
+function renderDetail(){
+ const s=current(),c=courseFor(s.course),r=rec(s.id);
+ const title=c?c.title:'七门课程综合复习与 CCAR-F 实作';
+ const link=c?'<a href="'+h(c.url)+'" target="_blank" rel="noopener noreferrer">打开这门课的官方页面 ↗</a>':'<a href="./exam-prep.html">进入21天认证备考 ↗</a>';
+ $('detail').innerHTML=
+ '<div class="sub">第 '+s.week+' 周 · '+dateFor(s.week,s.day)+' · 主课程 W'+s.week+'/D'+s.day+' · 课时 '+s.id+'/48</div>'+
+ '<h2 style="margin:5px 0">'+h(s.title)+'</h2><p><span class="tag">'+h(title)+'</span> <span class="sub">建议 '+s.plannedMin+' 分钟（含费曼练习），实际可调整</span></p>'+
+ '<div class="study"><p><b>今天学什么：</b>'+h(s.learn)+'</p><p><b>对应实践：</b>'+h(s.practice)+'</p><p><b>费曼问题：</b>'+h(s.feynman)+'</p></div>'+
+ '<div class="resource" style="margin-top:12px"><strong>原始课程</strong><p>'+link+'</p><p class="small">'+h(c?c.note:'对照官方考纲和21天备考页进行复盘。')+'</p></div>'+
+ '<div class="row space"><button id="copyPrompt">复制今日 NotebookLM 讨论提示词</button><a href="./#notebook" target="_blank" rel="noopener noreferrer">打开主课程 NotebookLM 区域 ↗</a></div>'+
+ '<label class="field" for="notes">自己的知识笔记</label><textarea id="notes" data-field="notes" placeholder="写下原理、适用条件、限制和来源，不要直接复制课程全文。">'+h(r.notes||'')+'</textarea>'+
+ '<label class="field" for="feynman">费曼复述（不查资料解释）</label><textarea id="feynman" data-field="feynman" placeholder="'+h(s.feynman)+'">'+h(r.feynman||'')+'</textarea>'+
+ '<label class="field" for="evidence">实践结果与可验证证据</label><textarea id="evidence" data-field="evidence" placeholder="说明做了什么、结果如何、失败时如何处理。">'+h(r.evidence||'')+'</textarea>'+
+ '<label class="field" for="gaps">还不懂的地方 / 下次复习目标</label><textarea id="gaps" data-field="gaps" placeholder="把理解漏洞记录下来。">'+h(r.gaps||'')+'</textarea>'+
+ '<label class="field" for="minutes">实际学习时长（分钟）</label><input id="minutes" type="number" min="0" max="1440" data-field="minutes" value="'+(Number(r.minutes)||0)+'">'+
+ '<label class="row" style="margin:17px 0;font-size:13px"><input id="done" type="checkbox" '+(r.done?'checked':'')+'><b>我已阅读对应章节、完成练习并能复述核心概念</b></label>'+
+ '<div class="row"><button data-go="'+Math.max(1,s.id-1)+'" '+(s.id===1?'disabled':'')+'>← 上一次</button><button data-go="'+Math.min(48,s.id+1)+'" class="primary" '+(s.id===48?'disabled':'')+'>下一次 →</button></div>';
+}
+function render(){renderStats();renderNav();renderCatalog();renderWeek();renderDetail()}
+function choose(n){if(!Number.isInteger(n)||n<1||n>48)return;state.selected=n;save();render();history.replaceState(null,'','#s-'+n)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){choose(Number(b.dataset.go));$('detail').scrollIntoView({block:'start'});return}});
+$('detail').addEventListener('input',e=>{const k=e.target.dataset.field;if(!k)return;const id=current().id;state.records[id]={...rec(id),[k]:k==='minutes'?Number(e.target.value)||0:e.target.value};save()});
+$('detail').addEventListener('change',e=>{if(e.target.id!=='done')return;const id=current().id,r=rec(id);if(e.target.checked&&(!(r.feynman||'').trim()||!(r.evidence||'').trim())){e.target.checked=false;alert('完成前请填写费曼复述和实践证据。');return}state.records[id]={...r,done:e.target.checked};save();render()});
+$('detail').addEventListener('click',async e=>{
+ if(e.target.id!=='copyPrompt')return;
+ const s=current(),c=courseFor(s.course);
+ const txt=['请作为我的费曼学习导师，严格以已导入 NotebookLM 的官方来源为依据，提供来源引用。','官方课程：'+(c?.title||'CCAR-F 综合复习'),'学习任务：'+s.title,'核心概念：'+s.learn,'实践任务：'+s.practice,'我的费曼问题：'+s.feynman,'请先让我尝试回答，再逐轮追问，不要直接公布所有答案。指出理解漏洞，最后给一个可验证的合成数据练习。','注意：以下官网链接需要我先手动导入 NotebookLM，它们不会因这段提示词而自动添加。',...(c?[c.url]:[])].join('\n\n');
+ try{await navigator.clipboard.writeText(txt);alert('已复制提纲，请打开对应 NotebookLM 笔记本粘贴。')}catch(_){const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();alert('已复制提纲。')}
+});
+$('export').addEventListener('click',()=>{
+ const blob=new Blob([JSON.stringify({format:'anthropic-seven-course-track',version:1,exportedAt:new Date().toISOString(),state},null,2)],{type:'application/json'});
+ const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download='Anthropic_7_Courses_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)
+});
+$('import').addEventListener('click',()=>$('fileInput').click());
+$('fileInput').addEventListener('change',async e=>{
+ const f=e.target.files?.[0];e.target.value='';if(!f)return;if(f.size>5000000){alert('备份文件太大');return}
+ try{const v=JSON.parse(await f.text());if(v.format!=='anthropic-seven-course-track'||typeof v.state?.records!=='object'||v.version!==1)throw Error('不是本课程页面的备份文件');
+ if(!confirm('导入将覆盖当前七课程学习记录。确认继续？'))return;state={...original(),...v.state};save();render();alert('导入完成')
+ }catch(err){alert('导入失败：'+err.message)}
+});
+const fromHash=Number((location.hash.match(/^#s-(\d+)$/)||[])[1]);if(fromHash>=1&&fromHash<=48)state.selected=fromHash;
+render();
+</script></body></html>
