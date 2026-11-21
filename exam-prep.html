@@ -57,7 +57,7 @@ let state=initial();
 try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&v.records&&typeof v.records==='object')state={...initial(),...v}}catch(_){}
 const el=(id)=>document.getElementById(id);
 const escapeHtml=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){alert('本机保存失败，请先导出笔记。')}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));window.StudySync?.changed()}catch(e){alert('本机保存失败，请先导出笔记。')}};
 const dayRec=()=>state.records[state.selected]||{};
 function show(){
 const d=DAYS[state.selected-1],rec=dayRec(),done=DAYS.filter(x=>state.records[x.id]?.done).length;
@@ -127,5 +127,21 @@ el('export').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({
 el('import').addEventListener('click',()=>el('file').click());
 el('file').addEventListener('change',async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;if(file.size>5e6){alert('文件太大');return}try{const obj=JSON.parse(await file.text());if(obj.format!=='ccar-prep-backup'||!obj.state?.records)throw Error('不是认证备考记录');if(!confirm('导入会覆盖本浏览器的认证备考笔记，确定吗？'))return;state={...initial(),...obj.state};save();show();alert('导入完成')}catch(err){alert(err.message)}});
 show();
+</script>
+<script src="./study-sync.js"></script>
+<script>
+window.StudySync.start({
+ scope:"exam",
+ get(){
+  const r=JSON.parse(localStorage.getItem("ccar_f_study_2026_v1")||"{}");
+  return {selected:r.selected||1,records:r.records||{},notebookUrl:r.notebookUrl||""};
+ },
+ hasWork(r){return Object.keys(r.records||{}).length>0||Boolean(r.notebookUrl)},
+ apply(value){
+  const key="ccar_f_study_2026_v1",r=JSON.parse(localStorage.getItem(key)||"{}");
+  localStorage.setItem(key,JSON.stringify({...r,...value}));
+  setTimeout(()=>location.reload(),60);
+ }
+});
 </script>
 </body></html>
