@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carson｜第3课｜Flask + Python 项目结构</title>
+<style>
+:root{--bg:#f6f8fc;--ink:#1f2937;--muted:#667085;--p:#4f46e5;--p2:#eef2ff;--ok:#15803d;--okbg:#ecfdf5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+header{position:sticky;top:0;z-index:10;background:#ffffffee;border-bottom:1px solid #e5e7eb;padding:10px 14px}
+.wrap{max-width:1100px;margin:auto}.head{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.head .buttons{margin-left:auto}
+h1{font-size:20px;margin:0}h2{font-size:21px;margin:0 0 10px}.sub{font-size:12px;color:var(--muted)}
+button{border:1px solid #c7d2fe;background:#fff;color:#3730a3;border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer}
+button.primary{background:var(--p);color:white}.progress{height:8px;background:#e5e7eb;border-radius:999px;margin-top:8px;overflow:hidden}.progress div{height:100%;width:0;background:var(--p);transition:.2s}
+main{max-width:1100px;margin:auto;padding:18px}section{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:20px;margin:16px 0}
+.hero{background:linear-gradient(135deg,#eef2ff,#f5f3ff)}.step{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--p);color:white;font-weight:900;margin-right:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr}}
+.bank,.zone{min-height:100px;border:2px dashed #cbd5e1;border-radius:14px;padding:12px;background:#fafafa}.zone.active{border-color:var(--p);background:#eef2ff}.zone-title{font-weight:900;margin-bottom:8px}
+.card{display:inline-block;border:1px solid #cbd5e1;background:white;border-radius:11px;padding:9px 11px;margin:5px;cursor:grab;user-select:none}.card.choice{cursor:pointer}.card.selected{outline:3px solid #818cf8}.card.correct{background:#f0fdf4}.card.wrong{background:#fef2f2}
+.code{white-space:pre-wrap;overflow:auto;background:#111827;color:white;border-radius:14px;padding:14px;line-height:1.6;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.rule,.answer{padding:12px 14px;border-radius:12px;margin:12px 0;line-height:1.6}.rule{background:var(--p2);border-left:5px solid var(--p)}.answer{background:#f9fafb;border:1px solid #e5e7eb}.hidden{display:none}
+.real{background:var(--okbg);border:2px solid #bbf7d0}.real label{display:flex;gap:10px;padding:7px 0;align-items:flex-start}.real input{margin-top:4px;transform:scale(1.2)}
+.score{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.score div{border:1px solid #e5e7eb;background:#f9fafb;border-radius:12px;padding:12px;text-align:center}.score b{display:block;font-size:22px}@media(max-width:600px){.score{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<div class="head">
+<div><h1>🧱 BYOK AI 文字冒险｜第 3 课</h1><div class="sub">Flask + Python 项目结构｜Issue #2｜route｜import｜测试｜Commit / Push</div></div>
+<div class="buttons"><button onclick="location.reload()">重置</button> <button class="primary" onclick="summary()">学习总结</button></div>
+</div>
+<div class="progress"><div id="bar"></div></div>
+</div>
+</header>
+
+<main>
+<section class="hero">
+<h2>今天的升级</h2>
+<div class="code">第2课：
+prototype.html
+  └─ 页面 + 游戏逻辑放在一起
+
+第3课：
+app.py
+game.py
+templates/
+  └─ index.html</div>
+<div class="rule">今天仍然不接 AI API。目标是学会把“网页显示”和“游戏逻辑”分开。</div>
+</section>
+
+<section>
+<h2><span class="step">1</span>为什么要拆文件？</h2>
+<div class="bank single" data-group="q1">
+<span class="card choice" data-good="1">项目变大后更容易读、改、测试，也更不容易误改</span>
+<span class="card choice" data-good="0">因为 HTML 不能超过 100 行</span>
+<span class="card choice" data-good="0">因为 GitHub 禁止单文件项目</span>
+</div>
+<button onclick="choice('q1','a1',1,'不同职责拆开，项目更容易维护。')">检查</button><div id="a1" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">2</span>三个核心文件分别负责什么？</h2>
+<div class="grid3">
+<div class="zone" data-zone="app"><div class="zone-title">app.py</div></div>
+<div class="zone" data-zone="game"><div class="zone-title">game.py</div></div>
+<div class="zone" data-zone="html"><div class="zone-title">templates/index.html</div></div>
+</div>
+<div class="bank">
+<span class="card" draggable="true" data-answer="app">Flask route、读取浏览器请求、把数据交给页面</span>
+<span class="card" draggable="true" data-answer="game">固定剧情和选择逻辑</span>
+<span class="card" draggable="true" data-answer="html">显示剧情和按钮</span>
+</div>
+<button onclick="zones(['app','game','html'],'a2',2)">检查</button><div id="a2" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">3</span>什么是 route？</h2>
+<div class="code">@app.route("/")
+def index():
+    ...</div>
+<div class="bank single" data-group="q3">
+<span class="card choice" data-good="1">浏览器访问某个地址时，Flask 应该运行哪个函数</span>
+<span class="card choice" data-good="0">游戏地图中的道路</span>
+<span class="card choice" data-good="0">Git Push 的路线</span>
+</div>
+<button onclick="choice('q3','a3',3,'`/` 通常表示网站首页。')">检查</button><div id="a3" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">4</span>request 在这里负责什么？</h2>
+<div class="code">choice = request.form.get("choice", "start")</div>
+<div class="bank single" data-group="q4">
+<span class="card choice" data-good="1">读取玩家从网页提交的选择</span>
+<span class="card choice" data-good="0">自动生成 AI 剧情</span>
+<span class="card choice" data-good="0">创建 Git Commit</span>
+</div>
+<button onclick="choice('q4','a4',4,'浏览器把玩家点击的选择交给 Flask。')">检查</button><div id="a4" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">5</span>render_template() 做什么？</h2>
+<div class="code">return render_template("index.html", scene=scene)</div>
+<div class="bank single" data-group="q5">
+<span class="card choice" data-good="1">把 Python 的 scene 数据交给 HTML 显示</span>
+<span class="card choice" data-good="0">调用 AI API</span>
+<span class="card choice" data-good="0">安装 Flask</span>
+</div>
+<button onclick="choice('q5','a5',5,'Python 决定数据，HTML 决定怎么显示。')">检查</button><div id="a5" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">6</span>import 是什么？</h2>
+<div class="code">from game import get_scene</div>
+<div class="bank single" data-group="q6">
+<span class="card choice" data-good="1">让 app.py 使用 game.py 里的函数</span>
+<span class="card choice" data-good="0">从 GitHub 自动下载项目</span>
+<span class="card choice" data-good="0">把 HTML 转成 Python</span>
+</div>
+<button onclick="choice('q6','a6',6,'模块拆开以后，用 import 把它们连接起来。')">检查</button><div id="a6" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">7</span>哪个文件不应该负责页面长什么样？</h2>
+<div class="bank single" data-group="q7">
+<span class="card choice" data-good="1">game.py</span>
+<span class="card choice" data-good="0">templates/index.html</span>
+</div>
+<button onclick="choice('q7','a7',7,'game.py 负责游戏逻辑，不负责网页外观。')">检查</button><div id="a7" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">8</span>Issue #2 应该包含哪些验收标准？</h2>
+<div class="grid2">
+<div class="bank">
+<span class="card" draggable="true" data-good="1">Flask app starts successfully</span>
+<span class="card" draggable="true" data-good="1">Opening story is visible</span>
+<span class="card" draggable="true" data-good="1">A / B / C work</span>
+<span class="card" draggable="true" data-good="1">Restart works</span>
+<span class="card" draggable="true" data-good="1">Game logic is in Python</span>
+<span class="card" draggable="true" data-good="1">HTML is inside templates/</span>
+<span class="card" draggable="true" data-good="1">No AI API is used</span>
+<span class="card" draggable="true" data-good="0">Add multiplayer</span>
+</div>
+<div class="zone" data-zone="criteria"><div class="zone-title">✅ Acceptance Criteria</div></div>
+</div>
+<button onclick="good('criteria','a8',7,8)">检查</button><div id="a8" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">9</span>正确的运行顺序</h2>
+<div class="bank">
+<span class="card" draggable="true" data-order="3">浏览器打开 http://127.0.0.1:5000</span>
+<span class="card" draggable="true" data-order="1">python3 -m pip install flask（首次需要）</span>
+<span class="card" draggable="true" data-order="4">测试 A / B / C / Restart</span>
+<span class="card" draggable="true" data-order="2">python3 app.py</span>
+</div>
+<div class="zone" data-zone="run"><div class="zone-title">▶️ Run & Test</div></div>
+<button onclick="order('run','a9',4,9)">检查</button><div id="a9" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">10</span>看到红色错误，第一步做什么？</h2>
+<div class="bank single" data-group="q10">
+<span class="card choice" data-good="1">先看错误类型、文件名、行号</span>
+<span class="card choice" data-good="0">让豆包全部重写</span>
+<span class="card choice" data-good="0">删除项目重新开始</span>
+</div>
+<button onclick="choice('q10','a10',10,'先读错误，再决定怎样修。')">检查</button><div id="a10" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">11</span>为什么修复后还要重新测试其他路径？</h2>
+<div class="bank single" data-group="q11">
+<span class="card choice" data-good="1">修改一个地方可能破坏原本正常的功能</span>
+<span class="card choice" data-good="0">因为 Flask 要求重复点击</span>
+</div>
+<button onclick="choice('q11','a11',11,'这就是 Regression Test 的基本思想。')">检查</button><div id="a11" class="answer hidden"></div>
+</section>
+
+<section>
+<h2><span class="step">12</span>Commit 前分别检查什么？</h2>
+<div class="grid2">
+<div class="zone" data-zone="status"><div class="zone-title">git status</div></div>
+<div class="zone" data-zone="diff"><div class="zone-title">git diff</div></div>
+</div>
+<div class="bank">
+<span class="card" draggable="true" data-answer="status">哪些文件被新增或修改</span>
+<span class="card" draggable="true" data-answer="diff">具体代码改了什么</span>
+</div>
+<button onclick="zones(['status','diff'],'a12',12)">检查</button><div id="a12" class="answer hidden"></div>
+</section>
+
+<section class="real">
+<h2><span class="step">13</span>真实项目验收：Issue #2</h2>
+<label><input class="realcheck" type="checkbox"> 开始前运行 `git status`</label>
+<label><input class="realcheck" type="checkbox"> GitHub Issue #2 已创建并写好 Acceptance Criteria</label>
+<label><input class="realcheck" type="checkbox"> `app.py` 已创建</label>
+<label><input class="realcheck" type="checkbox"> `game.py` 已创建</label>
+<label><input class="realcheck" type="checkbox"> `templates/index.html` 已创建</label>
+<label><input class="realcheck" type="checkbox"> `prototype.html` 仍保留</label>
+<label><input class="realcheck" type="checkbox"> `python3 app.py` 可正常启动，无 Traceback</label>
+<label><input class="realcheck" type="checkbox"> 首页显示开场剧情 + 3 个选择</label>
+<label><input class="realcheck" type="checkbox"> A 分支通过</label>
+<label><input class="realcheck" type="checkbox"> B 分支通过</label>
+<label><input class="realcheck" type="checkbox"> C 分支通过</label>
+<label><input class="realcheck" type="checkbox"> Restart 通过</label>
+<label><input class="realcheck" type="checkbox"> Commit 前检查 `git status` 和 `git diff`</label>
+<label><input class="realcheck" type="checkbox"> Commit：`将固定剧情原型迁移为 Flask 应用`</label>
+<label><input class="realcheck" type="checkbox"> 已 Push 并在 GitHub 验证</label>
+<label><input class="realcheck" type="checkbox"> Acceptance Criteria 全部通过后关闭 Issue #2</label>
+<button onclick="real()">验收第3课</button><div id="a13" class="answer hidden"></div>
+</section>
+
+<section>
+<h2>🏁 第3课成绩板</h2>
+<div class="score">
+<div><b id="score">0</b>完成关卡</div>
+<div><b>3</b>核心新文件</div>
+<div><b>6</b>真实测试</div>
+<div><b id="statusText">建设中</b>项目状态</div>
+</div>
+<div class="rule">第3课成功标准：Carson 能说清楚 `app.py`、`game.py`、`index.html` 各自为什么存在，而不是只知道“豆包帮我做出来了”。</div>
+</section>
+
+<section id="sum" class="hidden">
+<h2>📋 第3课学习总结</h2>
+<div class="code" id="sumtext"></div>
+</section>
+</main>
+
+<script>
+let selected=null,done=new Set();const TOTAL=13;
+function mark(n){done.add(n);document.getElementById('bar').style.width=(done.size/TOTAL*100)+'%';document.getElementById('score').textContent=done.size;if(done.size===TOTAL){document.getElementById('statusText').textContent='Issue #2 完成';document.getElementById('statusText').style.color='#15803d'}}
+function show(id,msg){let e=document.getElementById(id);e.innerHTML=msg;e.classList.remove('hidden')}
+document.querySelectorAll('.single .choice').forEach(c=>c.onclick=()=>{let p=c.closest('.single');p.querySelectorAll('.choice').forEach(x=>x.classList.remove('selected'));c.classList.add('selected')});
+document.querySelectorAll('[draggable="true"]').forEach(c=>{c.ondragstart=()=>selected=c;c.onclick=()=>{selected=c}});
+document.querySelectorAll('.zone').forEach(z=>{z.ondragover=e=>{e.preventDefault();z.classList.add('active')};z.ondragleave=()=>z.classList.remove('active');z.ondrop=e=>{e.preventDefault();z.classList.remove('active');if(selected){z.appendChild(selected);selected=null}};z.onclick=e=>{if(selected&&(e.target===z||e.target.classList.contains('zone-title'))){z.appendChild(selected);selected=null}}});
+function choice(g,id,n,msg){let c=document.querySelector(`[data-group="${g}"] .selected`);if(!c){show(id,'请先选择。');return}if(c.dataset.good==='1'){show(id,'✅ '+msg);mark(n)}else show(id,'❌ 再想一想。')}
+function zones(names,id,n){let all=[];names.forEach(name=>all.push(...document.querySelectorAll(`[data-zone="${name}"] .card`)));let ok=0;all.forEach(c=>{let r=c.closest('.zone').dataset.zone===c.dataset.answer;c.classList.add(r?'correct':'wrong');if(r)ok++});show(id,`正确 ${ok}/${all.length}`);if(all.length&&ok===all.length)mark(n)}
+function good(zone,id,count,n){let a=[...document.querySelectorAll(`[data-zone="${zone}"] .card`)];let g=a.filter(x=>x.dataset.good==='1').length,b=a.filter(x=>x.dataset.good==='0').length;show(id,`正确项目 ${g} 个，无关项目 ${b} 个。`);if(g===count&&b===0)mark(n)}
+function order(zone,id,count,n){let a=[...document.querySelectorAll(`[data-zone="${zone}"] .card`)];let ok=a.length===count&&a.every((x,i)=>Number(x.dataset.order)===i+1);show(id,ok?'✅ 顺序正确。':'❌ 顺序还不对。');if(ok)mark(n)}
+function real(){let a=[...document.querySelectorAll('.realcheck')],n=a.filter(x=>x.checked).length;if(n===a.length){show('a13','✅ 第3课真实项目验收通过。Issue #2 可以正式关闭。');mark(13)}else show('a13',`目前完成 ${n}/${a.length} 项。继续完成真实操作。`)}
+function summary(){document.getElementById('sumtext').textContent=`第3课我完成了：
+
+1. 我理解了 Separation of Concerns。
+2. app.py 负责 Flask route 和浏览器请求。
+3. game.py 负责游戏逻辑。
+4. templates/index.html 负责页面显示。
+5. 我理解 route、request、render_template 和 import 的基本作用。
+6. 我成功运行了 Flask 本地服务器。
+7. 我测试了 A / B / C / Restart。
+8. Debug 时我先看错误类型、文件和行号。
+9. 修复后我进行了 Regression Test。
+10. Commit 前我检查了 git status 和 git diff。
+11. 我完成 Commit / Push，并在验收后关闭 Issue #2。
+
+下一课：Game State——turn、health、location、items。`;document.getElementById('sum').classList.remove('hidden');document.getElementById('sum').scrollIntoView({behavior:'smooth'})}
+</script>
+</body>
+</html>
